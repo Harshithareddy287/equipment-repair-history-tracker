@@ -62,6 +62,13 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# Tracker databases stay on the Docker volume or in a local path.
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+backups/
+
 # Flask stuff:
 instance/
 .webassets-cache
