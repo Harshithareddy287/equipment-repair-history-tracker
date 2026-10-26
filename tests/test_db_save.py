@@ -1,5 +1,6 @@
 """JM-2: save_visit and save_visits."""
 
+import sqlite3
 from dataclasses import replace
 from datetime import date
 
@@ -59,7 +60,7 @@ def test_saved_visit_stores_everything_and_reduces_stock(stocked):
 def test_failure_halfway_rolls_back_the_whole_visit(stocked):
     before = counts(stocked)
     # The second row breaks CHECK (quantity > 0) after the first row is written.
-    with pytest.raises(Exception):
+    with pytest.raises(sqlite3.IntegrityError):
         save_visit(stocked, [row(quantity_used=2), row(part_number="P-1002", quantity_used=0)])
 
     assert counts(stocked) == before
@@ -79,8 +80,11 @@ def test_part_not_in_stock_is_saved(stocked):
 
 @pytest.mark.parametrize("field, value", [
     ("serial_number", "SW-9999"),
-    ("visit_date", date(2026, 10, 2)),
+    ("equipment_type", "router"),
     ("technician", "T-02"),
+    ("visit_date", date(2026, 10, 2)),
+    ("problem_code", "FAN"),
+    ("outcome", "escalated"),
 ])
 def test_rows_that_disagree_raise_value_error(stocked, field, value):
     with pytest.raises(ValueError):
