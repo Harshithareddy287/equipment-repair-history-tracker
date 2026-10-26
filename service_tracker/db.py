@@ -178,3 +178,73 @@ def save_visits(conn, rows) -> SaveResult:
         else:
             result.saved += 1
     return result
+
+
+# Read-only queries for the rules, the report and the CLI. Each returns a
+# list of plain dicts so callers do not depend on sqlite3.Row.
+
+
+def history_for_serial(conn, serial_number) -> list[dict]:
+    """Every visit for one serial, oldest first, one row per part used.
+
+    The LEFT JOIN keeps a visit that used no parts; its part columns are None.
+    visit_id and p.id break ties, so the order is the same on every run.
+    """
+    rows = conn.execute(
+        """
+        SELECT v.visit_id, v.visit_date, v.technician, v.problem_code, v.outcome,
+               p.part_number, p.quantity
+        FROM visits v LEFT JOIN parts_used p ON p.visit_id = v.visit_id
+        WHERE v.serial_number = ?
+        ORDER BY v.visit_date, v.visit_id, p.id
+        """,
+        (serial_number,),
+    )
+    return [dict(row) for row in rows]
+
+
+def all_visits(conn) -> list[dict]:
+    """Every visit, grouped by serial and oldest first, for the repeat failure rule.
+
+    visit_id breaks ties between visits on the same day.
+    """
+    rows = conn.execute(
+        """
+        SELECT visit_id, serial_number, visit_date, outcome
+        FROM visits
+        ORDER BY serial_number, visit_date, visit_id
+        """
+    )
+    return [dict(row) for row in rows]
+
+
+def low_stock_parts(conn) -> list[dict]:
+    """Parts at or below their reorder level, including negative stock."""
+    rows = conn.execute(
+        """
+        SELECT part_number, description, quantity_on_hand, reorder_level
+        FROM stock
+        WHERE quantity_on_hand <= reorder_level
+        ORDER BY part_number
+        """
+    )
+    return [dict(row) for row in rows]
+
+
+def unknown_parts(conn) -> list[dict]:
+    """Parts used on a visit that are not in stock (the 1.1.0 rule).
+
+    The LEFT JOIN gives NULL stock columns when no stock row matches.
+    visit_id and p.id break ties, so the order is the same on every run.
+    """
+    rows = conn.execute(
+        """
+        SELECT p.visit_id, v.serial_number, v.visit_date, p.part_number, p.quantity
+        FROM parts_used p
+        JOIN visits v ON v.visit_id = p.visit_id
+        LEFT JOIN stock s ON s.part_number = p.part_number
+        WHERE s.part_number IS NULL
+        ORDER BY v.visit_date, v.visit_id, p.id
+        """
+    )
+    return [dict(row) for row in rows]
