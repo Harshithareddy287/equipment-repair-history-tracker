@@ -148,3 +148,43 @@ def test_version_1_database_with_unknown_parts_is_read_by_every_query(conn):
     assert len(all_visits(conn)) == 1
     assert len(low_stock_parts(conn)) == 1
     assert len(unknown_parts(conn)) == 1
+
+
+def test_all_visits_breaks_same_day_ties_by_visit_id(conn):
+    add_equipment(conn, "SW-4410")
+    add_visit(conn, "V-0002", "SW-4410", "2026-10-01")
+    add_visit(conn, "V-0001", "SW-4410", "2026-10-01")
+
+    assert [v["visit_id"] for v in all_visits(conn)] == ["V-0001", "V-0002"]
+
+
+def test_history_lists_parts_in_the_order_they_were_saved(conn):
+    add_equipment(conn, "SW-4410")
+    add_visit(conn, "V-0002", "SW-4410", "2026-10-01")
+    add_visit(conn, "V-0001", "SW-4410", "2026-10-01")
+    add_part(conn, "V-0001", "P-3000")
+    add_part(conn, "V-0001", "P-1000")
+    add_part(conn, "V-0002", "P-2000")
+
+    history = history_for_serial(conn, "SW-4410")
+
+    assert [(h["visit_id"], h["part_number"]) for h in history] == [
+        ("V-0001", "P-3000"),
+        ("V-0001", "P-1000"),
+        ("V-0002", "P-2000"),
+    ]
+
+
+def test_unknown_parts_breaks_ties_by_visit_then_part(conn):
+    add_equipment(conn, "SW-4410")
+    add_visit(conn, "V-0002", "SW-4410", "2026-10-01")
+    add_visit(conn, "V-0001", "SW-4410", "2026-10-01")
+    add_part(conn, "V-0002", "P-9001")
+    add_part(conn, "V-0001", "P-9003")
+    add_part(conn, "V-0001", "P-9002")
+
+    assert [(u["visit_id"], u["part_number"]) for u in unknown_parts(conn)] == [
+        ("V-0001", "P-9003"),
+        ("V-0001", "P-9002"),
+        ("V-0002", "P-9001"),
+    ]
