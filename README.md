@@ -114,9 +114,29 @@ def load_settings(path) -> Settings: ...  # raises SettingsError
 def connect(path=None) -> sqlite3.Connection: ...  # foreign_keys ON
 def init_db(conn) -> None: ...
 def load_stock_records(conn, records) -> None: ...
-def save_visit(conn, rows: list[ServiceVisit]) -> None: ...  # one transaction
-def history_for_serial(conn, serial) -> list[dict]: ...
+@dataclass
+class SaveResult:
+    saved: int                     # visits saved by this call
+    duplicates: list[str]          # visit_ids already in the database, skipped
+    failed: list[tuple[str, str]]  # (visit_id, reason); the rest still save
+
+def save_visit(conn, rows: list[ServiceVisit]) -> None: ...  # one visit, one transaction; ValueError if rows disagree
+def save_visits(conn, rows: list[ServiceVisit]) -> SaveResult: ...  # groups by visit_id, one transaction per visit
+
+# Queries: each returns list[dict], always in the same order.
+def history_for_serial(conn, serial_number) -> list[dict]: ...
+# keys: visit_id, visit_date, technician, problem_code, outcome, part_number, quantity
+# one row per part; a visit with no parts has part_number and quantity None
+# ordered by visit_date, visit_id, then part
+def all_visits(conn) -> list[dict]: ...
+# keys: visit_id, serial_number, visit_date, outcome
+# ordered by serial_number, visit_date, visit_id
 def low_stock_parts(conn) -> list[dict]: ...
+# keys: part_number, description, quantity_on_hand, reorder_level
+# quantity_on_hand <= reorder_level (negative included), ordered by part_number
+def unknown_parts(conn) -> list[dict]: ...
+# keys: visit_id, serial_number, visit_date, part_number, quantity
+# parts used that are not in stock (1.1.0 rule), ordered by visit_date, visit_id, then part
 
 # rules/base.py (Shreyaa)
 @dataclass(frozen=True)
