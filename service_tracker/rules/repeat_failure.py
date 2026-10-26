@@ -4,26 +4,14 @@ The limits are settings.repeat_failure_count and
 settings.repeat_failure_window_days. Nothing in this file is a fixed
 threshold, serial number, or date.
 
-all_visits(conn) is not in service_tracker.db on this branch. The visits
-table is the table that function will read, so evaluate loads it here.
-visit_date is ISO text on a sqlite3.Row.
+Visits come from db.all_visits. visit_date is ISO text.
 """
 
 from collections import defaultdict
 from datetime import date
 
+from service_tracker.db import all_visits
 from service_tracker.rules.base import Flag, FlagRule
-
-
-def _visit_rows(conn):
-    """Every saved visit, in serial-number order."""
-    return conn.execute(
-        """
-        SELECT serial_number, visit_date
-        FROM visits
-        ORDER BY serial_number, visit_date, visit_id
-        """
-    ).fetchall()
 
 
 def _qualifying_window(dates, count, window_days):
@@ -53,7 +41,7 @@ class RepeatFailureRule(FlagRule):
 
     def evaluate(self, conn, settings) -> list[Flag]:
         by_serial = defaultdict(list)
-        for row in _visit_rows(conn):
+        for row in all_visits(conn):
             visit_day = date.fromisoformat(row["visit_date"])
             by_serial[row["serial_number"]].append(visit_day)
 

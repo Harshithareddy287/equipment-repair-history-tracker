@@ -1,43 +1,28 @@
 """Flag a part whose quantity on hand is at or below its reorder level.
 
-The comparison is the low-stock rule: quantity_on_hand <= reorder_level.
-Both numbers come from the stock row. This rule does not use settings.
-
-low_stock_parts(conn) is not in service_tracker.db on this branch. The stock
-table is the table that function will read, so evaluate loads it here.
+low_stock_parts already returns those parts, including a negative count.
+Both numbers on the flag come from that row. This rule does not use settings.
 """
 
+from service_tracker.db import low_stock_parts
 from service_tracker.rules.base import Flag, FlagRule
 
 
-def _stock_rows(conn):
-    """Every part, in part-number order. quantity_on_hand is an int."""
-    return conn.execute(
-        """
-        SELECT part_number, quantity_on_hand, reorder_level
-        FROM stock
-        ORDER BY part_number
-        """
-    ).fetchall()
-
-
 class LowStockRule(FlagRule):
-    """One flag per part at or below its own reorder level."""
+    """One flag per part returned by low_stock_parts."""
 
     name = "low_stock"
 
     def evaluate(self, conn, settings) -> list[Flag]:
-        """Flag parts at or below their reorder level.
+        """Flag every part low_stock_parts returns.
 
-        settings is part of the FlagRule signature. This rule reads each
-        part's own reorder level instead.
+        settings is part of the FlagRule signature. The reorder comparison
+        is already done by that query.
         """
         flags = []
-        for row in _stock_rows(conn):
+        for row in low_stock_parts(conn):
             on_hand = row["quantity_on_hand"]
             reorder_level = row["reorder_level"]
-            if on_hand > reorder_level:
-                continue
             part_number = row["part_number"]
             flags.append(
                 Flag(
