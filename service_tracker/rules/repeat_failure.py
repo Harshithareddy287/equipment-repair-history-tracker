@@ -26,19 +26,23 @@ def _visit_rows(conn):
     ).fetchall()
 
 
-def _first_qualifying_window(dates, count, window_days):
-    """Earliest `count` dates whose first and last are within the window.
+def _qualifying_window(dates, count, window_days):
+    """Every visit in the earliest window that holds at least `count` visits.
 
-    dates is already sorted. The span is the number of days from the first
-    date in the group to the last. A span equal to window_days still counts.
+    dates is already sorted. The search stops at the first start date from
+    which enough visits fall within window_days, including a visit that lands
+    on the last day. Every later visit still inside that same window is kept.
+    One serial therefore gets one window, even when later groups also qualify.
     """
     if count < 1 or len(dates) < count:
         return None
-    for start in range(len(dates) - count + 1):
-        end = start + count - 1
-        span_days = (dates[end] - dates[start]).days
-        if span_days <= window_days:
-            return dates[start : end + 1]
+    for start, origin in enumerate(dates):
+        window = [
+            day for day in dates[start:]
+            if (day - origin).days <= window_days
+        ]
+        if len(window) >= count:
+            return window
     return None
 
 
@@ -55,13 +59,14 @@ class RepeatFailureRule(FlagRule):
 
         flags = []
         for serial_number, visit_dates in by_serial.items():
-            window = _first_qualifying_window(
+            window = _qualifying_window(
                 sorted(visit_dates),
                 settings.repeat_failure_count,
                 settings.repeat_failure_window_days,
             )
             if window is None:
                 continue
+            span_days = (window[-1] - window[0]).days
             flags.append(
                 Flag(
                     rule=self.name,
@@ -70,8 +75,9 @@ class RepeatFailureRule(FlagRule):
                     visit_dates=window,
                     quantity=None,
                     message=(
-                        f"{serial_number} has {len(window)} visits from "
-                        f"{window[0].isoformat()} to {window[-1].isoformat()}"
+                        f"{serial_number}: {len(window)} visits in {span_days} days "
+                        f"(limit {settings.repeat_failure_count} in "
+                        f"{settings.repeat_failure_window_days})"
                     ),
                 )
             )

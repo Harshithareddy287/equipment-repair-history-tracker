@@ -56,21 +56,18 @@ def insert_part(conn, part_number, quantity_on_hand, reorder_level):
 
 
 def test_repeat_failure_triggers_at_the_configured_threshold(conn):
-    # Four visits fit in the window. One flag, and it keeps the earliest three.
-    insert_visits(
-        conn,
-        "SN-100",
-        [date(2026, 4, 1), date(2026, 4, 5), date(2026, 4, 10), date(2026, 4, 20)],
-    )
+    # All four visits sit inside 30 days of January 1, so the one flag keeps all four.
+    dates = [date(2026, 1, 1), date(2026, 1, 5), date(2026, 1, 10), date(2026, 1, 20)]
+    insert_visits(conn, "SN-100", dates)
     flags = RepeatFailureRule().evaluate(conn, make_settings(count=3, window_days=30))
     assert flags == [
         Flag(
             rule="repeat_failure",
             serial_number="SN-100",
             part_number=None,
-            visit_dates=[date(2026, 4, 1), date(2026, 4, 5), date(2026, 4, 10)],
+            visit_dates=dates,
             quantity=None,
-            message="SN-100 has 3 visits from 2026-04-01 to 2026-04-10",
+            message="SN-100: 4 visits in 19 days (limit 3 in 30)",
         )
     ]
 
@@ -87,6 +84,7 @@ def test_visits_exactly_window_days_apart(conn):
     insert_visits(conn, "SN-100", dates)
     flags = RepeatFailureRule().evaluate(conn, make_settings(count=3, window_days=window_days))
     assert [flag.visit_dates for flag in flags] == [dates]
+    assert flags[0].message == "SN-100: 3 visits in 10 days (limit 3 in 10)"
 
 
 def test_visits_outside_the_configured_window(conn):
@@ -100,9 +98,29 @@ def test_visits_outside_the_configured_window(conn):
 def test_changing_repeat_failure_count_changes_results(conn):
     insert_visits(conn, "SN-100", [date(2026, 4, 1), date(2026, 4, 5)])
     flagged = RepeatFailureRule().evaluate(conn, make_settings(count=2, window_days=30))
-    assert len(flagged) == 1
-    assert flagged[0].visit_dates == [date(2026, 4, 1), date(2026, 4, 5)]
+    assert flagged == [
+        Flag(
+            rule="repeat_failure",
+            serial_number="SN-100",
+            part_number=None,
+            visit_dates=[date(2026, 4, 1), date(2026, 4, 5)],
+            quantity=None,
+            message="SN-100: 2 visits in 4 days (limit 2 in 30)",
+        )
+    ]
     assert RepeatFailureRule().evaluate(conn, make_settings(count=3, window_days=30)) == []
+
+
+def test_one_repeat_failure_flag_per_serial(conn):
+    insert_visits(
+        conn,
+        "SN-100",
+        [date(2026, 1, 1), date(2026, 1, 5), date(2026, 1, 10), date(2026, 1, 20)],
+    )
+    insert_visits(conn, "SN-200", [date(2026, 4, 2), date(2026, 4, 3), date(2026, 4, 4)])
+    flags = RepeatFailureRule().evaluate(conn, make_settings(count=3, window_days=30))
+    assert [flag.serial_number for flag in flags] == ["SN-100", "SN-200"]
+    assert len(flags) == 2
 
 
 def test_repeat_failure_slides_past_an_older_visit(conn):
@@ -114,6 +132,7 @@ def test_repeat_failure_slides_past_an_older_visit(conn):
     flags = RepeatFailureRule().evaluate(conn, make_settings(count=3, window_days=30))
     assert len(flags) == 1
     assert flags[0].visit_dates == [date(2026, 3, 1), date(2026, 3, 10), date(2026, 3, 20)]
+    assert flags[0].message == "SN-100: 3 visits in 19 days (limit 3 in 30)"
 
 
 def test_low_stock_below_reorder_level(conn):
@@ -155,7 +174,7 @@ def test_negative_stock_produces_a_shortfall(conn):
             part_number="P-8001",
             visit_dates=[],
             quantity=-2,
-            message="P-8001 has -2 on hand, which is below zero",
+            message="P-8001: -2 on hand",
         )
     ]
 
@@ -180,7 +199,7 @@ def test_multiple_rules_produce_multiple_flags(conn):
             part_number=None,
             visit_dates=[date(2026, 7, 1), date(2026, 7, 8), date(2026, 7, 15)],
             quantity=None,
-            message="SN-100 has 3 visits from 2026-07-01 to 2026-07-15",
+            message="SN-100: 3 visits in 14 days (limit 3 in 30)",
         ),
         Flag(
             rule="low_stock",
@@ -204,7 +223,7 @@ def test_multiple_rules_produce_multiple_flags(conn):
             part_number="P-2002",
             visit_dates=[],
             quantity=-3,
-            message="P-2002 has -3 on hand, which is below zero",
+            message="P-2002: -3 on hand",
         ),
     ]
 

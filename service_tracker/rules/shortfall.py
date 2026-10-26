@@ -43,7 +43,7 @@ class ShortfallRule(FlagRule):
                     part_number=part_number,
                     visit_dates=[],
                     quantity=on_hand,
-                    message=f"{part_number} has {on_hand} on hand, which is below zero",
+                    message=f"{part_number}: {on_hand} on hand",
                 )
             )
         return flags
