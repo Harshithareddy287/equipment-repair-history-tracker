@@ -1,0 +1,72 @@
+"""Flag a serial number that is visited too often inside the configured window.
+
+The limits are settings.repeat_failure_count and
+settings.repeat_failure_window_days. Nothing in this file is a fixed
+threshold, serial number, or date.
+
+Visits come from db.all_visits. visit_date is ISO text.
+"""
+
+from collections import defaultdict
+from datetime import date
+
+from service_tracker.db import all_visits
+from service_tracker.rules.base import Flag, FlagRule
+
+
+def _qualifying_window(dates, count, window_days):
+    """Every visit in the earliest window that holds at least `count` visits.
+
+    dates is already sorted. The search stops at the first start date from
+    which enough visits fall within window_days, including a visit that lands
+    on the last day. Every later visit still inside that same window is kept.
+    One serial therefore gets one window, even when later groups also qualify.
+    """
+    if count < 1 or len(dates) < count:
+        return None
+    for start, origin in enumerate(dates):
+        window = [
+            day for day in dates[start:]
+            if (day - origin).days <= window_days
+        ]
+        if len(window) >= count:
+            return window
+    return None
+
+
+class RepeatFailureRule(FlagRule):
+    """One flag per serial number that has enough visits in the window."""
+
+    name = "repeat_failure"
+
+    def evaluate(self, conn, settings) -> list[Flag]:
+        by_serial = defaultdict(list)
+        for row in all_visits(conn):
+            visit_day = date.fromisoformat(row["visit_date"])
+            by_serial[row["serial_number"]].append(visit_day)
+
+        flags = []
+        for serial_number, visit_dates in by_serial.items():
+            window = _qualifying_window(
+                sorted(visit_dates),
+                settings.repeat_failure_count,
+                settings.repeat_failure_window_days,
+            )
+            if window is None:
+                continue
+            span_days = (window[-1] - window[0]).days
+            flags.append(
+                Flag(
+                    rule=self.name,
+                    serial_number=serial_number,
+                    part_number=None,
+                    visit_dates=window,
+                    quantity=None,
+                    message=(
+                        f"{serial_number}: {len(window)} visits in {span_days} days "
+                        f"(limit {settings.repeat_failure_count} in "
+                        f"{settings.repeat_failure_window_days})"
+                    ),
+                )
+            )
+        return flags
