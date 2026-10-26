@@ -1,0 +1,13 @@
+part_number,description,quantity_on_hand,reorder_level
+P-1001,PSU 500W,34,4
+P-1002,Chassis fan,26,7
+P-1180,SFP+ transceiver,1,2
+P-1450,DIMM 32GB,16,7
+P-2031,PSU 750W,4,5
+P-2210,SSD 960GB,26,8
+P-2675,HDD 4TB,20,8
+P-3307,Fan tray,6,4
+P-3512,NIC 25GbE,22,4
+P-4020,RAID controller battery,20,3
+P-4188,Console cable,23,8
+P-5230,Supervisor module,31,5
