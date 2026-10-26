@@ -1,0 +1,5 @@
+{
+  "repeat_failure_count": 3,
+  "repeat_failure_window_days": 30,
+  "part_number_pattern": "^P-\\d{4}$"
+}
