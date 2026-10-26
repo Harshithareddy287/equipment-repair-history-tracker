@@ -1,10 +1,10 @@
 """SQLite storage: schema, connections and writes for the service tracker."""
- 
+
 import os
 import sqlite3
- 
+
 DEFAULT_DB_PATH = "service.db"
- 
+
 # Dates are ISO text so they sort correctly. CHECK (date(x) IS x) rejects
 # impossible dates such as 2026-13-05; with = a NULL from date() would pass.
 # parts_used.part_number has no foreign key to stock so 1.1.0 can flag
@@ -37,11 +37,11 @@ CREATE TABLE IF NOT EXISTS stock (
 CREATE INDEX IF NOT EXISTS idx_visits_serial_date ON visits(serial_number, visit_date);
 PRAGMA user_version = 1;
 """
- 
- 
+
+
 def connect(path=None) -> sqlite3.Connection:
     """Open the database with foreign keys on.
- 
+
     The path comes from the argument, then SERVICE_DB_PATH, then
     service.db. Close it with contextlib.closing(connect()): `with conn:`
     commits or rolls back but does not close.
@@ -52,10 +52,32 @@ def connect(path=None) -> sqlite3.Connection:
     conn.execute("PRAGMA foreign_keys = ON")
     conn.row_factory = sqlite3.Row
     return conn
- 
- 
+
+
 def init_db(conn) -> None:
     """Create the tables and index. Safe to run on an existing database."""
     conn.executescript(SCHEMA)
 
- 
+
+def load_stock_records(conn, records) -> None:
+    """Insert or update stock parts from the loader, in one transaction.
+
+    A new part is inserted with its quantity from the file. An existing part
+    gets its description and reorder level updated, but keeps its
+    quantity_on_hand: saved visits have already taken stock off it, so
+    re-running the same files must not put that stock back.
+    """
+    with conn:
+        conn.executemany(
+            """
+            INSERT INTO stock (part_number, description, quantity_on_hand, reorder_level)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(part_number) DO UPDATE SET
+              description = excluded.description,
+              reorder_level = excluded.reorder_level
+            """,
+            [
+                (r.part_number, r.description, r.quantity_on_hand, r.reorder_level)
+                for r in records
+            ],
+        )
