@@ -3,7 +3,7 @@ WORKDIR /app
 COPY pyproject.toml ./
 COPY service_tracker ./service_tracker
 RUN pip install --no-cache-dir .
-COPY data ./data
+COPY data ./sample_data
 RUN useradd --create-home app && mkdir /data && chown app:app /data
 USER app
 ENV SERVICE_DB_PATH=/data/service.db
