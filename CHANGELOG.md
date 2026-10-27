@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-28
+
 ### Added
 
 - Shared data classes `ServiceVisit`, `StockRecord` and `Rejection` in `service_tracker/models.py` (TEA-10).
