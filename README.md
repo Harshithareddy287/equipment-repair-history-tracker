@@ -233,3 +233,89 @@ V-0139  2026-10-02  A. Okafor  PWR  failed  P-1001 x1
 V-0141  2026-10-11  B. Lindqvist  PWR  replaced_part  P-1001 x1
 V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1
 ```
+
+## Release 1.1.0, backup, and rollback
+
+Release 1.1.0 keeps the same database tables. It adds the unknown-part flag and a backup command. The 1.1.0 image loads `sample_data/visits_unknown_parts.csv`, which is the 1.0.0 visits plus two visits that use parts missing from stock (`P-9901`, `P-9902`).
+
+This drill started from a clean `tracker-data` volume and was repeated twice. Both times the backup printed `ok`, the upgrade flagged the unknown parts, and `service-tracker:1.0.0` still read the same file. One restore copied the backup back over `service.db`.
+
+```bash
+docker build -t service-tracker:1.1.0 .
+docker volume rm -f tracker-data && docker volume create tracker-data
+docker run --rm -v tracker-data:/data service-tracker:1.0.0
+docker run --rm -v tracker-data:/data --entrypoint python service-tracker:1.1.0 \
+  -m service_tracker.backup /data/service.db /data/backups/pre-1.1.0.db
+docker run --rm -v tracker-data:/data service-tracker:1.1.0
+docker run --rm -v tracker-data:/data service-tracker:1.0.0 history SW-4410
+docker run --rm service-tracker:1.0.0 --version
+```
+
+```text
+naming to docker.io/library/service-tracker:1.1.0 done
+```
+
+After the 1.0.0 run the database had 40 visits. The backup command printed:
+
+```text
+ok
+```
+
+The 1.1.0 run skipped the 40 visits already saved and stored the two unknown-part visits. The visit count went from 40 to 42. `SW-4410` stayed at the same three visits.
+
+```text
+4 rows rejected:
+line 9: serial_number is missing
+line 21: quantity_used is negative (-2)
+line 31: visit_date is not an ISO date (2026-13-05)
+line 40: quantity_used is not a whole number (two)
+
+Service Visit Report
+
+Visits loaded:    42
+Visits saved:     2
+Duplicates:       40
+Rejected:         4
+Serials checked:  17
+
+Unknown parts
+  Serial number:  RT-9001
+  Part number:    P-9901
+  Visit dates:    2026-10-20
+  Quantity:       1
+  Message:        P-9901 is not in stock
+
+  Serial number:  SRV-9002
+  Part number:    P-9902
+  Visit dates:    2026-10-22
+  Quantity:       2
+  Message:        P-9902 is not in stock
+```
+
+Running history with the 1.0.0 image on that same volume still works, and `--version` still prints `1.0.0`:
+
+```text
+History for SW-4410
+V-0139  2026-10-02  A. Okafor  PWR  failed  P-1001 x1
+V-0141  2026-10-11  B. Lindqvist  PWR  replaced_part  P-1001 x1
+V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1
+```
+
+```text
+1.0.0
+```
+
+Restore copies the backup over the live database, then history is read again with 1.0.0. The visit count returns to 40 and `SW-4410` is unchanged.
+
+```bash
+docker run --rm -v tracker-data:/data --entrypoint python service-tracker:1.1.0 \
+  -c "import shutil; shutil.copy('/data/backups/pre-1.1.0.db', '/data/service.db')"
+docker run --rm -v tracker-data:/data service-tracker:1.0.0 history SW-4410
+```
+
+```text
+History for SW-4410
+V-0139  2026-10-02  A. Okafor  PWR  failed  P-1001 x1
+V-0141  2026-10-11  B. Lindqvist  PWR  replaced_part  P-1001 x1
+V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1
+```

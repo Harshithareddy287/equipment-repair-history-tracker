@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
-- Added: unknown part rule
+## [1.1.0]
+
+### Added
+
+- Unknown part rule. A part used on a visit that is not in stock is flagged. No database tables change, so Release 1.0.0 can still open the history.
 
 ## [1.0.0] - 2026-10-28
 
