@@ -9,4 +9,4 @@ USER app
 ENV SERVICE_DB_PATH=/data/service.db
 VOLUME ["/data"]
 ENTRYPOINT ["service-tracker"]
-CMD ["run", "--visits", "sample_data/visits.csv", "--stock", "sample_data/stock.csv", "--settings", "sample_data/settings.json"]
+CMD ["run", "--visits", "sample_data/visits_unknown_parts.csv", "--stock", "sample_data/stock.csv", "--settings", "sample_data/settings.json"]

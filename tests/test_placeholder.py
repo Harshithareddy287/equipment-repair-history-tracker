@@ -4,4 +4,4 @@ import service_tracker
 
 
 def test_package_imports_and_reports_a_version():
-    assert service_tracker.__version__ == "1.0.0"
+    assert service_tracker.__version__ == "1.1.0"
