@@ -153,27 +153,83 @@ class FlagRule(ABC):
     def evaluate(self, conn, settings) -> list[Flag]: ...
 ```
 
-The command line entry point is `service-tracker`, mapped to `service_tracker.cli:main`. The scaffold accepts `--version` only. The full `run` and `history` commands are added with the CLI work.
+The command line entry point is `service-tracker`, mapped to `service_tracker.cli:main`. `run` loads the files, saves history, and prints the report. `history SW-4410` prints the saved visits for that serial number.
 
 ## Run
 
-Real command output is pasted here in a later ticket.
+Install and test on your machine:
 
 ```bash
 python -m pip install -e ".[dev]"
 pytest -q
-service-tracker --version
 ```
 
-Each person clones this repository, runs the two commands above, and sets `git config user.name` and `git config user.email` so later commits carry their name.
+The integration test runs `run` on `data/visits.csv`, `data/stock.csv`, and `data/settings.json`. It checks the printed report and the saved row counts: 40 visits, 46 parts used, and 12 stock rows, including repeat failure `SW-4410`, low stock `P-2031` and `P-3307`, shortfall `P-1180`, and 4 rejected rows. It does not start Docker, does not check the volume, does not upgrade or roll back, and does not try large files.
 
-Container, once the image exists:
+Build and run Release 1.0.0. The sample files inside the image are in `sample_data`. The database is on the volume, at `/data/service.db`. This output is from a clean volume.
 
 ```bash
 docker build -t service-tracker:1.0.0 .
-docker run --rm \
-  -v tracker-data:/data \
-  -e SERVICE_DB_PATH=/data/service.db \
-  service-tracker:1.0.0 \
-  --version
+docker volume create readme-100
+docker run --rm -v readme-100:/data service-tracker:1.0.0
+```
+
+```text
+naming to docker.io/library/service-tracker:1.0.0 done
+```
+
+```text
+4 rows rejected:
+line 9: serial_number is missing
+line 21: quantity_used is negative (-2)
+line 31: visit_date is not an ISO date (2026-13-05)
+line 40: quantity_used is not a whole number (two)
+
+Service Visit Report
+
+Visits loaded:    40
+Visits saved:     40
+Duplicates:       0
+Rejected:         4
+Serials checked:  15
+
+Repeat failures
+  Serial number:  SW-4410
+  Visit dates:    2026-10-02, 2026-10-11, 2026-10-24
+  Message:        SW-4410: 3 visits in 22 days (limit 3 in 30)
+
+Low stock
+  Part number:    P-1180
+  Quantity:       -2
+  Message:        P-1180 has -2 on hand, at or below its reorder level of 2
+
+  Part number:    P-2031
+  Quantity:       2
+  Message:        P-2031 has 2 on hand, at or below its reorder level of 5
+
+  Part number:    P-3307
+  Quantity:       4
+  Message:        P-3307 has 4 on hand, at or below its reorder level of 4
+
+Stock shortfalls
+  Part number:    P-1180
+  Quantity:       -2
+  Message:        P-1180: -2 on hand
+
+The tool only flags and reports issues.
+It does not order parts, schedule repairs,
+or decide whether equipment should be replaced.
+```
+
+History for the repeat-failure serial, using the same volume:
+
+```bash
+docker run --rm -v readme-100:/data service-tracker:1.0.0 history SW-4410
+```
+
+```text
+History for SW-4410
+V-0139  2026-10-02  A. Okafor  PWR  failed  P-1001 x1
+V-0141  2026-10-11  B. Lindqvist  PWR  replaced_part  P-1001 x1
+V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1
 ```
