@@ -379,7 +379,7 @@ def test_report_lists_unknown_part_after_the_known_groups(conn):
         run_all_rules(conn, make_settings()),
         RunSummary(1, 1, 0, 0, 1),
     )
-    assert text.index("Low stock") < text.index("Unknown part")
+    assert text.index("Low stock") < text.index("Unknown parts")
     assert "P-9901 is not in stock" in text
     assert "Repeat failures" not in text
     assert "Stock shortfalls" not in text
