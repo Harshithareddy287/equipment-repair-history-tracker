@@ -12,6 +12,7 @@ variable, otherwise its own default (``service.db``).
 """
 
 import argparse
+import sqlite3
 import sys
 from contextlib import closing
 
@@ -106,11 +107,15 @@ def run_command(args) -> int:
 
     # None lets connect() apply SERVICE_DB_PATH, then its own default.
     # closing() closes the connection; sqlite's own `with` only commits.
-    with closing(connect(args.db)) as conn:
-        init_db(conn)
-        load_stock_records(conn, stock)
-        result = save_visits(conn, rows)
-        flags = run_all_rules(conn, settings)
+    try:
+        with closing(connect(args.db)) as conn:
+            init_db(conn)
+            load_stock_records(conn, stock)
+            result = save_visits(conn, rows)
+            flags = run_all_rules(conn, settings)
+    except sqlite3.Error as error:
+        print(f"database error: {error}", file=sys.stderr)
+        return 1
 
     # One visit can be several CSV rows, one row per part. Count visit ids.
     summary = RunSummary(
@@ -127,12 +132,18 @@ def run_command(args) -> int:
 
 def history_command(args) -> int:
     """Print saved visits for one serial, oldest first. Does not load CSVs."""
-    with closing(connect(args.db)) as conn:
-        # A new database file has no tables yet. init_db is safe to repeat,
-        # so an empty database reports no history instead of raising.
-        init_db(conn)
-        rows = history_for_serial(conn, args.serial)
-    print(format_history(args.serial, rows))
+    # Saved serials are stripped and uppercase. Match that form on lookup.
+    serial = args.serial.strip().upper()
+    try:
+        with closing(connect(args.db)) as conn:
+            # A new database file has no tables yet. init_db is safe to repeat,
+            # so an empty database reports no history instead of raising.
+            init_db(conn)
+            rows = history_for_serial(conn, serial)
+    except sqlite3.Error as error:
+        print(f"database error: {error}", file=sys.stderr)
+        return 1
+    print(format_history(serial, rows))
     return 0
 
 

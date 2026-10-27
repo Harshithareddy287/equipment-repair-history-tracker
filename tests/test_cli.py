@@ -1,6 +1,7 @@
 """The command line connects the loader, database, rules, and report."""
 
 import json
+import sqlite3
 from contextlib import closing
 from pathlib import Path
 
@@ -165,6 +166,88 @@ def test_history_on_an_empty_database(tmp_path, capsys):
     assert code == 0
     assert captured.out == f"No history for {serial}.\n"
     assert captured.err == ""
+
+
+def saved_sw4410(tmp_path, capsys):
+    """Store one SW-4410 visit and clear the run command's output."""
+    visits = tmp_path / "visits.csv"
+    visits.write_text(
+        "\n".join(
+            [
+                VISIT_HEADER,
+                "V-0139,SW-4410,switch,A. Okafor,2026-10-02,PWR,P-1001,1,failed",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    stock = tmp_path / "stock.csv"
+    stock.write_text(
+        "\n".join([STOCK_HEADER, "P-1001,PSU,10,2"]) + "\n",
+        encoding="utf-8",
+    )
+    settings = tmp_path / "settings.json"
+    write_settings(settings)
+    db = tmp_path / "service.db"
+    assert main(run_args(visits, stock, settings, db)) == 0
+    capsys.readouterr()
+    return db
+
+
+@pytest.mark.parametrize("typed", ["SW-4410", "sw-4410", "Sw-4410", "  sw-4410  "])
+def test_history_finds_serial_regardless_of_case_and_space(tmp_path, capsys, typed):
+    db = saved_sw4410(tmp_path, capsys)
+    code = main(["history", typed, "--db", str(db)])
+    captured = capsys.readouterr()
+    assert code == 0
+    assert captured.err == ""
+    assert captured.out.startswith("History for SW-4410\n")
+    assert "V-0139" in captured.out
+    assert "2026-10-02" in captured.out
+
+
+def test_unknown_serial_uses_the_normalized_message(tmp_path, capsys):
+    code = main(["history", "  no-such  ", "--db", str(tmp_path / "empty.db")])
+    captured = capsys.readouterr()
+    assert code == 0
+    assert captured.out == "No history for NO-SUCH.\n"
+    assert captured.err == ""
+
+
+def sqlite_error_line(path):
+    """The one stderr line the CLI prints when SQLite cannot open `path`."""
+    try:
+        sqlite3.connect(path)
+    except sqlite3.Error as error:
+        return f"database error: {error}\n"
+    raise AssertionError(f"SQLite opened {path}")
+
+
+@pytest.mark.parametrize("command", ["run", "history"])
+def test_invalid_db_path_returns_1_without_a_traceback(tmp_path, capsys, command):
+    bad = tmp_path / "missing-dir" / "service.db"
+    if command == "run":
+        visits, stock, settings = write_sample(tmp_path)
+        args = run_args(visits, stock, settings, bad)
+    else:
+        args = ["history", "SW-4410", "--db", str(bad)]
+    code = main(args)
+    captured = capsys.readouterr()
+    assert code == 1
+    assert captured.err == sqlite_error_line(bad)
+    assert "Traceback" not in captured.err
+    assert captured.err.count("\n") == 1
+
+
+def test_bad_service_db_path_returns_1(tmp_path, monkeypatch, capsys):
+    bad = tmp_path / "missing-dir" / "service.db"
+    monkeypatch.setenv("SERVICE_DB_PATH", str(bad))
+    code = main(["history", "sw-4410"])
+    captured = capsys.readouterr()
+    assert code == 1
+    assert captured.err == sqlite_error_line(bad)
+    assert captured.out == ""
+    assert "Traceback" not in captured.err
 
 
 def test_history_shows_visits_oldest_first(tmp_path, capsys):
