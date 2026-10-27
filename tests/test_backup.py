@@ -2,7 +2,9 @@
 
 import sqlite3
 
-from service_tracker.backup import backup
+import pytest
+
+from service_tracker.backup import backup, main
 
 
 def _counts(path):
@@ -37,3 +39,24 @@ def test_backup_copies_rows_and_passes_integrity_check(tmp_path):
         "visits": 3,
         "stock": 2,
     }
+
+
+def test_backup_rejects_a_missing_source(tmp_path):
+    missing = tmp_path / "typo.db"
+    destination = tmp_path / "backups" / "x.db"
+    with pytest.raises(FileNotFoundError, match="not found"):
+        backup(missing, destination)
+    assert not missing.exists()
+    assert not destination.exists()
+
+
+def test_main_prints_a_missing_source(tmp_path, capsys):
+    missing = tmp_path / "typo.db"
+    destination = tmp_path / "backups" / "x.db"
+    code = main([str(missing), str(destination)])
+    captured = capsys.readouterr()
+    assert code == 1
+    assert captured.err == f"backup error: {missing} not found\n"
+    assert captured.out == ""
+    assert not missing.exists()
+    assert not destination.exists()
