@@ -4,12 +4,14 @@ from service_tracker.rules.base import Flag, FlagRule
 from service_tracker.rules.low_stock import LowStockRule
 from service_tracker.rules.repeat_failure import RepeatFailureRule
 from service_tracker.rules.shortfall import ShortfallRule
+from service_tracker.rules.unknown_part import UnknownPartRule
 
 # Registration order is the order flags are returned in.
 RULES: list[FlagRule] = [
     RepeatFailureRule(),
     LowStockRule(),
     ShortfallRule(),
+    UnknownPartRule(),
 ]
 
 

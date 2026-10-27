@@ -149,6 +149,29 @@ def test_changing_summary_values_changes_output():
     assert "same message" in second
 
 
+def test_unknown_part_heading_is_unknown_parts():
+    flags = [
+        make_flag("repeat_failure", "repeat message", serial_number="SN-1"),
+        make_flag("low_stock", "low message", part_number="P-1001", quantity=2),
+        make_flag("shortfall", "short message", part_number="P-2002", quantity=-2),
+        make_flag(
+            "unknown_part",
+            "P-9901 is not in stock",
+            serial_number="SN-100",
+            part_number="P-9901",
+            visit_dates=[date(2026, 10, 1)],
+            quantity=1,
+        ),
+    ]
+    text = render_report(flags, make_summary())
+    lines = text.splitlines()
+    assert "Unknown parts" in lines
+    assert lines.index("Repeat failures") < lines.index("Low stock")
+    assert lines.index("Low stock") < lines.index("Stock shortfalls")
+    assert lines.index("Stock shortfalls") < lines.index("Unknown parts")
+    assert text.index("\nUnknown parts\n") < text.index("P-9901 is not in stock")
+
+
 def test_unknown_rules_follow_the_required_groups_in_name_order():
     flags = [
         make_flag("zeta_check", "zeta message", part_number="P-9002"),

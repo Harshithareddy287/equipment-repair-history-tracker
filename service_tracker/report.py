@@ -16,12 +16,13 @@ FOOTER = (
     "or decide whether equipment should be replaced."
 )
 
-# These three groups are printed first, in this order. Any other rule name
+# These groups are printed first, in this order. Any other rule name
 # follows, sorted by that name.
 _KNOWN_SECTIONS = (
     ("repeat_failure", "Repeat failures"),
     ("low_stock", "Low stock"),
     ("shortfall", "Stock shortfalls"),
+    ("unknown_part", "Unknown parts"),
 )
 
 
@@ -90,7 +91,7 @@ def _flag_lines(flags):
 
 
 def _heading(rule):
-    """Turn an unknown rule id such as unknown_part into a heading."""
+    """Turn an unlisted rule id such as zeta_check into a heading."""
     text = rule.replace("_", " ")
     if not text:
         return rule

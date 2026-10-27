@@ -1,4 +1,4 @@
-"""Rules engine: repeat failure, low stock, and stock shortfall.
+"""Rules engine: repeat failure, low stock, stock shortfall, and unknown part.
 
 Each test inserts its own rows into the conn fixture. The rules read that
 database. They do not read the CSV files.
@@ -9,11 +9,15 @@ from datetime import date, timedelta
 
 import pytest
 
+from service_tracker.db import load_stock_records, save_visits
+from service_tracker.models import ServiceVisit, StockRecord
+from service_tracker.report import RunSummary, render_report
 from service_tracker.rules import RULES, run_all_rules
 from service_tracker.rules.base import Flag, FlagRule
 from service_tracker.rules.low_stock import LowStockRule
 from service_tracker.rules.repeat_failure import RepeatFailureRule
 from service_tracker.rules.shortfall import ShortfallRule
+from service_tracker.rules.unknown_part import UnknownPartRule
 from service_tracker.settings import Settings
 
 
@@ -52,6 +56,14 @@ def insert_part(conn, part_number, quantity_on_hand, reorder_level):
             "INSERT INTO stock (part_number, description, quantity_on_hand, reorder_level)"
             " VALUES (?, ?, ?, ?)",
             (part_number, "test part", quantity_on_hand, reorder_level),
+        )
+
+
+def insert_part_used(conn, visit_id, part_number, quantity=1):
+    with conn:
+        conn.execute(
+            "INSERT INTO parts_used (visit_id, part_number, quantity) VALUES (?, ?, ?)",
+            (visit_id, part_number, quantity),
         )
 
 
@@ -255,4 +267,119 @@ def test_rules_registry_lists_each_rule_once():
         RepeatFailureRule,
         LowStockRule,
         ShortfallRule,
+        UnknownPartRule,
     ]
+
+
+# --- unknown part -----------------------------------------------------------
+
+
+def test_unknown_part_is_flagged(conn):
+    insert_visits(conn, "SN-100", [date(2026, 10, 1)])
+    insert_part(conn, "P-1001", 10, 2)
+    insert_part_used(conn, "SN-100-1", "P-1001", 1)
+    insert_part_used(conn, "SN-100-1", "P-9901", 2)
+    flags = UnknownPartRule().evaluate(conn, make_settings())
+    assert flags == [
+        Flag(
+            rule="unknown_part",
+            serial_number="SN-100",
+            part_number="P-9901",
+            visit_dates=[date(2026, 10, 1)],
+            quantity=2,
+            message="P-9901 is not in stock",
+        )
+    ]
+
+
+def test_known_parts_produce_no_unknown_part_flag(conn):
+    insert_visits(conn, "SN-100", [date(2026, 10, 1)])
+    insert_part(conn, "P-1001", 10, 2)
+    insert_part_used(conn, "SN-100-1", "P-1001", 1)
+    assert UnknownPartRule().evaluate(conn, make_settings()) == []
+
+
+def test_each_unknown_part_reference_is_flagged_once_in_query_order(conn):
+    # The later visit is inserted first. The query orders by date, then part id.
+    insert_visits(conn, "SN-200", [date(2026, 10, 20)])
+    insert_visits(conn, "SN-100", [date(2026, 10, 1), date(2026, 10, 5)])
+    insert_part(conn, "P-1001", 10, 2)
+    insert_part_used(conn, "SN-200-1", "P-9901", 4)
+    insert_part_used(conn, "SN-100-1", "P-9902", 1)
+    insert_part_used(conn, "SN-100-1", "P-9901", 2)
+    insert_part_used(conn, "SN-100-2", "P-9901", 3)
+    insert_part_used(conn, "SN-100-1", "P-1001", 1)
+    flags = UnknownPartRule().evaluate(conn, make_settings())
+    assert [(flag.part_number, flag.visit_dates, flag.quantity) for flag in flags] == [
+        ("P-9902", [date(2026, 10, 1)], 1),
+        ("P-9901", [date(2026, 10, 1)], 2),
+        ("P-9901", [date(2026, 10, 5)], 3),
+        ("P-9901", [date(2026, 10, 20)], 4),
+    ]
+
+
+def test_unknown_part_on_an_empty_database(conn):
+    assert UnknownPartRule().evaluate(conn, make_settings()) == []
+
+
+def test_unknown_part_message_and_fields_come_from_the_row(conn):
+    insert_visits(conn, "SN-100", [date(2026, 8, 3)])
+    insert_part_used(conn, "SN-100-1", "P-9901", 7)
+    flag = UnknownPartRule().evaluate(conn, make_settings())[0]
+    assert flag.rule == "unknown_part"
+    assert flag.serial_number == "SN-100"
+    assert flag.part_number == "P-9901"
+    assert flag.visit_dates == [date(2026, 8, 3)]
+    assert flag.quantity == 7
+    assert "P-9901" in flag.message
+    assert flag.message == "P-9901 is not in stock"
+
+
+def test_unknown_part_is_registered_and_runs_with_the_other_rules(conn):
+    assert [type(rule) for rule in RULES].count(UnknownPartRule) == 1
+    insert_visits(
+        conn,
+        "SN-100",
+        [date(2026, 7, 1), date(2026, 7, 8), date(2026, 7, 15)],
+    )
+    insert_part_used(conn, "SN-100-1", "P-9901", 1)
+    flags = run_all_rules(conn, make_settings(count=3, window_days=30))
+    assert [flag.rule for flag in flags] == ["repeat_failure", "unknown_part"]
+    assert flags[0].serial_number == "SN-100"
+    assert flags[1].part_number == "P-9901"
+
+
+def test_unknown_part_remains_after_save_visits(conn):
+    load_stock_records(conn, [StockRecord("P-1001", "known part", 10, 2)])
+    result = save_visits(
+        conn,
+        [
+            ServiceVisit(
+                "V-1", "SN-100", "switch", "T-01", date(2026, 10, 1),
+                "PWR", "P-1001", 1, "fixed",
+            ),
+            ServiceVisit(
+                "V-1", "SN-100", "switch", "T-01", date(2026, 10, 1),
+                "PWR", "P-9901", 2, "fixed",
+            ),
+        ],
+    )
+    assert result.saved == 1
+    assert result.failed == []
+    flags = UnknownPartRule().evaluate(conn, make_settings())
+    assert [flag.part_number for flag in flags] == ["P-9901"]
+    assert flags[0].quantity == 2
+
+
+def test_report_lists_unknown_part_after_the_known_groups(conn):
+    insert_part(conn, "P-1001", 1, 5)
+    insert_visits(conn, "SN-100", [date(2026, 10, 1)])
+    insert_part_used(conn, "SN-100-1", "P-9901", 1)
+    text = render_report(
+        run_all_rules(conn, make_settings()),
+        RunSummary(1, 1, 0, 0, 1),
+    )
+    assert text.index("Low stock") < text.index("Unknown parts")
+    assert "P-9901 is not in stock" in text
+    assert "Repeat failures" not in text
+    assert "Stock shortfalls" not in text
