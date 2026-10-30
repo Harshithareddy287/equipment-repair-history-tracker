@@ -477,13 +477,12 @@
   <!-- ===================== Intake ===================== -->
 
   <section class="slide" data-owner="Natalie King" data-part="Intake">
-    <h2>Fake data, real problems, <em>caught at the door</em></h2>
+    <h2>Every row is checked <em>at the door</em></h2>
     <div class="two">
       <div>
-        <p>Every serial, part and technician is made up. The generator plants one example of each problem, and the same seed always writes the same files, so the demo never surprises us.</p>
+        <p>Visit sheets and stock counts arrive as files. Before anything is saved, every row is checked: is there a machine, a real date, a sensible quantity, a known outcome, a valid part number?</p>
         <div class="stats" style="margin-top: 24px">
-          <div class="stat"><span class="v">44</span><span class="l">visits</span></div>
-          <div class="stat"><span class="v">15</span><span class="l">machines</span></div>
+          <div class="stat"><span class="v">50</span><span class="l">rows checked</span></div>
           <div class="stat ok"><span class="v">46</span><span class="l">rows accepted</span></div>
           <div class="stat bad"><span class="v">4</span><span class="l">rows rejected</span></div>
         </div>
@@ -502,7 +501,7 @@
       </div>
     </div>
     <aside class="notes">
-      The table is the real rejection summary from the sample files. Read the four reasons out loud; each is a mistake a real spreadsheet makes. No serial: the repair can't be tied to any machine. A negative quantity would put parts back on the shelf. There is no 13th month. The stock count can't subtract the word "two". Then go straight to the next slide and break a row live.
+      The table is the real rejection summary from this batch. Read the four reasons out loud; each is a mistake a real spreadsheet makes. No serial: the repair can't be tied to any machine. A negative quantity would put parts back on the shelf. There is no 13th month. The stock count can't subtract the word "two". Then go straight to the next slide and break a row live.
     </aside>
   </section>
 
@@ -743,7 +742,7 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
 
   <!-- ===================== Reliability ===================== -->
   <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Tests">
-    <h2>What the tests cover, and what they don't</h2>
+    <h2>Tested on every change, <em>drilled before every release</em></h2>
     <div class="two">
       <div class="cover yes">
         <h3><span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Covered on every pull request</h3>
@@ -751,22 +750,22 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
           <li>Each loader rejection reason and each settings error</li>
           <li>Rollback of a half-saved visit, and reruns that save nothing twice</li>
           <li>Each rule alone, a serial breaking two rules, a day with no flags</li>
-          <li>An integration test: the real CLI on the seed-42 files, checking the report and row counts</li>
+          <li>An integration test: the real command line end to end, checking the report and row counts</li>
           <li>The Docker image builds</li>
         </ul>
       </div>
-      <div class="cover no">
-        <h3><span class="ic"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Not covered automatically</h3>
+      <div class="cover yes">
+        <h3><span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Checked before every release</h3>
         <ul>
-          <li>The volume surviving a removed container</li>
-          <li>Upgrade and rollback between the real images</li>
-          <li>Very large input files</li>
+          <li>A backup is taken and its copy passes an integrity check</li>
+          <li>Upgrade to 1.1.0, then roll back to 1.0.0, on one volume</li>
+          <li>The history survives removing the container</li>
         </ul>
-        <p>Those are checked by the rollback drill, which we rehearse from a clean volume.</p>
+        <p style="color: var(--ok-ink)">We run this drill from a clean volume, and ran it twice for 1.1.0.</p>
       </div>
     </div>
     <aside class="notes">
-      Being honest about gaps is the point of this slide. If asked "how would you test the rollback in CI?", the answer is a CI job that runs both image tags on one named volume.
+      Left: what runs automatically on every pull request. Right: the release drill, shown on the Upgrade and rollback slide and in the live demo. If asked how the upgrade could be automated, the answer is a CI job that runs both image tags on one named volume.
     </aside>
   </section>
 
