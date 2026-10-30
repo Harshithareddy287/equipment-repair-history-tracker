@@ -205,6 +205,8 @@
     table.data td:first-child { border-left: 1.5px solid #F3EAE0; border-radius: 12px 0 0 12px; }
     table.data td:last-child { border-right: 1.5px solid #F3EAE0; border-radius: 0 12px 12px 0; }
     table.data tr.hit td { background: var(--lav); border-color: var(--lav); }
+    table.data.big th { font-size: 15px; }
+    table.data.big td { font-size: 17px; padding: 12px 16px; }
     .more { font-size: 13px; color: var(--ink-3); margin-top: 6px; }
 
     .term { background: var(--term-bg); color: var(--term-ink); border-radius: 18px; overflow: hidden; }
@@ -474,77 +476,33 @@
 
   <!-- ===================== Intake ===================== -->
 
-  <section class="slide" data-owner="Natalie King" data-part="Synthetic data">
-    <div class="run-grid">
-      <div class="prose">
-        <h2>Fake data, <em>real problems</em> planted on purpose</h2>
-        <p>Every serial, part and technician is made up. The generator plants one example of each problem, so every rule has something to catch.</p>
-        <p>The same seed always writes the same files, so the demo never surprises us.</p>
-        <div class="try"><strong>Try:</strong> set <code class="inline">SEED = 7</code>. The background visits move, SW-4410 keeps its three October visits, and the files no longer match the committed ones.</div>
+  <section class="slide" data-owner="Natalie King" data-part="Intake">
+    <h2>Fake data, real problems, <em>caught at the door</em></h2>
+    <div class="two">
+      <div>
+        <p>Every serial, part and technician is made up. The generator plants one example of each problem, and the same seed always writes the same files, so the demo never surprises us.</p>
+        <div class="stats" style="margin-top: 24px">
+          <div class="stat"><span class="v">44</span><span class="l">visits</span></div>
+          <div class="stat"><span class="v">15</span><span class="l">machines</span></div>
+          <div class="stat ok"><span class="v">46</span><span class="l">rows accepted</span></div>
+          <div class="stat bad"><span class="v">4</span><span class="l">rows rejected</span></div>
+        </div>
+        <p>A good row becomes a typed visit: a real date, a whole-number quantity. A bad row is never saved; it is reported with its line number so someone can fix the sheet.</p>
       </div>
-      <div class="bench">
-        <script type="text/x-python" id="s-generate">
-          from collections import Counter
-          import csv, filecmp
-          from generate_data import generate   # scripts/generate_data.py
-          import deck                          # draws the charts on this slide
-
-          SEED = 42
-
-          generate(SEED, "gen", with_unknown_parts=True)
-          rows = list(csv.DictReader(open("gen/visits.csv")))
-
-          visits = {}
-          for row in rows:                     # one row per part, so keep each visit once
-              visits.setdefault(row["visit_id"], row)
-
-          same = filecmp.cmp("gen/visits.csv", "data/visits.csv", shallow=False)
-          print(f"Seed {SEED} wrote {len(rows)} rows. Same as the committed data/visits.csv: {same}")
-
-          deck.stats({"CSV rows": len(rows), "Visits": len(visits),
-                      "Serial numbers": len({v["serial_number"] for v in visits.values() if v["serial_number"]}),
-                      "Technicians": len({v["technician"] for v in visits.values()})})
-          per_serial = Counter(v["serial_number"] or "(blank)" for v in visits.values())
-          deck.columns("Visits per serial number", per_serial.most_common(), highlight=["SW-4410"])
-        </script>
+      <div>
+        <table class="data big">
+          <thead><tr><th>line</th><th>visit</th><th>reason</th></tr></thead>
+          <tbody>
+            <tr><td>9</td><td>V-0107</td><td>serial_number is missing</td></tr>
+            <tr><td>21</td><td>V-0116</td><td>quantity_used is negative (-2)</td></tr>
+            <tr><td>31</td><td>V-0125</td><td>visit_date is not an ISO date (2026-13-05)</td></tr>
+            <tr><td>40</td><td>V-0134</td><td>quantity_used is not a whole number (two)</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
     <aside class="notes">
-      Press Run. Point at SW-4410: three planted visits in October. The (blank) bar is the row with a missing serial, which the next slide rejects. If time allows, change the seed live to show the planted cases don't move.
-      <div class="handoff">Keep going: next slide is what happens to the bad rows.</div>
-    </aside>
-  </section>
-
-  <section class="slide" data-owner="Natalie King" data-part="Validation">
-    <div class="run-grid">
-      <div class="prose">
-        <h2>A bad row is stopped at the door, <em>with a reason</em></h2>
-        <p>Each good row becomes a typed <code class="inline">ServiceVisit</code>: a real date, a whole-number quantity. Each bad row becomes a <code class="inline">Rejection</code> with its line number, and is never saved.</p>
-        <p>So everything after this step can trust its input.</p>
-      </div>
-      <div class="bench">
-        <script type="text/x-python" id="s-validate">
-          from service_tracker.loader import load_stock, load_visits
-          from service_tracker.settings import load_settings
-          import deck
-
-          settings = load_settings("data/settings.json")
-          visits, rejected = load_visits("data/visits.csv", settings.part_number_pattern)
-          stock, stock_rejected = load_stock("data/stock.csv")
-
-          print("First good row:", visits[0])
-
-          deck.stats({"Rows accepted": len(visits), "Rows rejected": len(rejected),
-                      "Stock parts": len(stock)},
-                     tones={"Rows accepted": "ok", "Rows rejected": "bad"})
-          deck.table([{"line": r.line_number, "visit": r.raw["visit_id"],
-                       "reason": r.reason.split(": ", 1)[1]} for r in rejected],
-                     title="Rejected before anything is saved")
-        </script>
-      </div>
-    </div>
-    <aside class="notes">
-      Read the four reasons out loud: missing serial, negative quantity, a 13th month, and the word "two". Line numbers match the CSV, so a technician can find and fix the row.
+      The table is the real rejection summary from the sample files. Read the four reasons out loud; each is a mistake a real spreadsheet makes. No serial: the repair can't be tied to any machine. A negative quantity would put parts back on the shelf. There is no 13th month. The stock count can't subtract the word "two". Then go straight to the next slide and break a row live.
     </aside>
   </section>
 
@@ -632,102 +590,16 @@
     </aside>
   </section>
 
-  <section class="slide" data-owner="Julian Marchington" data-part="Saving a batch">
-    <div class="run-grid">
-      <div class="prose">
-        <h2>One batch in, and the stock counts follow</h2>
-        <p><code class="inline">save_visits</code> groups rows by visit and saves each visit in one transaction: the equipment, the visit, its parts and the stock change. One visit in the database is one paper visit sheet, so any record can be checked by hand.</p>
-        <p>P-1180 had 1 on hand. A visit used 3. The database says -2, and keeps saying it.</p>
-      </div>
-      <div class="bench">
-        <script type="text/x-python" id="s-save">
-          from contextlib import closing
-          from service_tracker.db import connect, init_db, load_stock_records, save_visits
-          from service_tracker.loader import load_stock, load_visits
-          import deck
-
-          visits, _ = load_visits("data/visits.csv", r"^P-\d{4}$")
-          stock, _ = load_stock("data/stock.csv")
-
-          with closing(connect(deck.fresh_path("julian.db"))) as conn:
-              init_db(conn)
-              count = lambda t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
-              tables = ("equipment", "visits", "parts_used", "stock")
-
-              load_stock_records(conn, stock)
-              before = {t: count(t) for t in tables}
-              on_hand_before = dict(conn.execute("SELECT part_number, quantity_on_hand FROM stock"))
-
-              result = save_visits(conn, visits)
-
-              after = {t: count(t) for t in tables}
-              parts = conn.execute("SELECT * FROM stock ORDER BY part_number").fetchall()
-
-          print(result)
-          deck.stock("Stock on hand: before and after this batch", [
-              {"part": p["part_number"], "before": on_hand_before[p["part_number"]],
-               "after": p["quantity_on_hand"], "reorder": p["reorder_level"]} for p in parts])
-          deck.compare("Rows in each table", before, after, "Stock loaded", "After the batch")
-        </script>
-      </div>
+  <section class="slide" data-owner="Julian Marchington" data-part="Saving visits">
+    <h2>Every visit is saved whole, <em>or not at all</em></h2>
+    <p>Each visit is one transaction: the machine, the visit, its parts and the stock change. One visit in the database is one paper visit sheet, so any record can be checked by hand.</p>
+    <div class="gains">
+      <div class="gain"><b>The stock count follows</b><span>The sample batch saves 40 visits and 46 parts. P-1180 had 1 on hand and a visit used 3, so the database says -2, and keeps saying it.</span></div>
+      <div class="gain"><b>A failed save leaves nothing</b><span>A visit whose second part breaks a schema rule is rolled back: 0 visits, 0 parts saved, and P-1001 stays at 10 on hand.</span></div>
+      <div class="gain"><b>Duplicates change nothing</b><span>Loading the same visit again saves 0 and reports 1 duplicate. Re-running yesterday's file never counts a part twice.</span></div>
     </div>
     <aside class="notes">
-      Point at the stock chart: the outline is the count from stock.csv, the solid bar is after the batch, the tick is the reorder level. Red is below zero, amber is at or under the reorder level.
-    </aside>
-  </section>
-
-  <section class="slide" data-owner="Julian Marchington" data-part="Transactions">
-    <div class="run-grid">
-      <div class="prose">
-        <h2>A save that fails halfway <em>leaves nothing behind</em></h2>
-        <p>This visit's first part is fine. Its second breaks a rule in the schema. Because the whole visit is one transaction, the first part's write and its stock change are rolled back too.</p>
-        <p>Then we save a good visit twice: the second run is a duplicate and changes nothing. Loading yesterday's file again never counts a visit or a part twice.</p>
-      </div>
-      <div class="bench">
-        <script type="text/x-python" id="s-rollback">
-          import sqlite3
-          from contextlib import closing
-          from datetime import date
-          from service_tracker.db import connect, init_db, load_stock_records, save_visit, save_visits
-          from service_tracker.models import ServiceVisit, StockRecord
-          import deck
-
-          def row(part, quantity):
-              return ServiceVisit("V-0500", "SW-4410", "switch", "A. Okafor",
-                                  date(2026, 10, 25), "PWR", part, quantity, "replaced_part")
-
-          with closing(connect(deck.fresh_path("rollback.db"))) as conn:
-              init_db(conn)
-              load_stock_records(conn, [StockRecord("P-1001", "PSU 500W", 10, 4),
-                                        StockRecord("P-1002", "Chassis fan", 5, 2)])
-              snapshot = lambda: {
-                  "visits": conn.execute("SELECT COUNT(*) FROM visits").fetchone()[0],
-                  "parts_used": conn.execute("SELECT COUNT(*) FROM parts_used").fetchone()[0],
-                  "P-1001 on hand": conn.execute(
-                      "SELECT quantity_on_hand FROM stock WHERE part_number = 'P-1001'").fetchone()[0],
-              }
-              before = snapshot()
-              try:
-                  save_visit(conn, [row("P-1001", 2), row("P-1002", 0)])   # 0 breaks CHECK (quantity > 0)
-              except sqlite3.IntegrityError as error:
-                  print("Save failed:", error)
-              after_failure = snapshot()
-
-              first = save_visits(conn, [row("P-1001", 2)])
-              second = save_visits(conn, [row("P-1001", 2)])
-              print("First run: ", first)
-              print("Second run:", second)
-
-          deck.compare("Database before and after the failed save", before, after_failure,
-                       "Before", "After the failed save")
-          deck.stats({"Saved, first run": first.saved, "Saved, second run": second.saved,
-                      "Duplicates, second run": len(second.duplicates)},
-                     tones={"Saved, second run": "ok"})
-        </script>
-      </div>
-    </div>
-    <aside class="notes">
-      The pairs of bars are identical: that's the point. Without the transaction, P-1001 would have dropped to 8 with no visit to explain it.
+      All three results come from running save_visits on test data. Without the transaction, P-1001 would drop to 8 with no visit to explain it.
       <div class="handoff">"With the history saved safely, here's how the owner will see it."</div>
     </aside>
   </section>
@@ -773,7 +645,8 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
     <div class="run-grid">
       <div class="prose">
         <h2>The rules read the <em>whole history</em>, not just today's file</h2>
-        <p>Each rule asks the database one question and returns flags. The repeat-failure limits come from the manager's settings, so changing them is an edit to a file.</p>
+        <p>One run over the sample history catches all three problems: a switch that keeps failing, parts at or under their reorder level, and a part used past zero.</p>
+        <p>The repeat-failure limits come from the manager's settings, so changing them is an edit to a file.</p>
         <div class="try"><strong>Try:</strong> <code class="inline">COUNT = 2</code> or <code class="inline">WINDOW = 120</code> and run again. More serials light up, with no code change.</div>
       </div>
       <div class="bench">
@@ -800,8 +673,11 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
               flags = run_all_rules(conn, settings)
               history = all_visits(conn)
 
+          kinds = {"Repeat failure": "repeat_failure", "Low stock": "low_stock", "Shortfall": "shortfall"}
+          deck.stats({label: sum(f.rule == rule for f in flags) for label, rule in kinds.items()},
+                     tones={"Repeat failure": "bad", "Low stock": "warn", "Shortfall": "bad"})
           deck.table([{"rule": f.rule, "for": f.serial_number or f.part_number, "message": f.message}
-                      for f in flags], title=f"{len(flags)} flags", highlight={"column": "rule", "values": ["repeat_failure"]})
+                      for f in flags], title=f"{len(flags)} flags")
 
           dates = defaultdict(list)
           for v in history:
@@ -816,59 +692,22 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
       </div>
     </div>
     <aside class="notes">
-      Run with the defaults: only SW-4410 is shaded. SW-5120 has the most visits but they are months apart, which is what the rule is for. Then set COUNT = 2 live.
+      Run with the defaults and read the three counts: 1 repeat failure (SW-4410), 3 low stock, 1 shortfall (P-1180, which is also low stock because -2 is under its reorder level). In the timeline only SW-4410 is shaded. SW-5120 has the most visits but they are months apart, which is what the rule is for. Then set COUNT = 2 live.
     </aside>
   </section>
 
   <section class="slide" data-owner="Shreyaa Lakshmivaragan" data-part="Inheritance">
-    <div class="run-grid">
-      <div class="prose">
-        <h2>A new rule is one class and one line</h2>
-        <p>Every rule inherits from <code class="inline">FlagRule</code> and fills in <code class="inline">evaluate</code>. The runner and the report already handle any rule in the list.</p>
-        <p>This is the Release 1.1.0 rule: a part was used that isn't in the stock list. It reads Julian's <code class="inline">unknown_parts</code> query, and the schema doesn't change.</p>
-      </div>
-      <div class="bench">
-        <script type="text/x-python" id="s-new-rule">
-          from collections import Counter
-          from contextlib import closing
-          from datetime import date
-          from service_tracker.db import connect, init_db, load_stock_records, save_visits, unknown_parts
-          from service_tracker.loader import load_stock, load_visits
-          from service_tracker.rules import RULES, run_all_rules
-          from service_tracker.rules.base import Flag, FlagRule
-          from service_tracker.settings import load_settings
-          import deck
-
-          class UnknownPartRule(FlagRule):
-              """A part was used on a visit but is not in the stock list."""
-              name = "unknown_part"
-
-              def evaluate(self, conn, settings):
-                  return [Flag(self.name, r["serial_number"], r["part_number"],
-                               [date.fromisoformat(r["visit_date"])], r["quantity"],
-                               f"{r['part_number']} is not in stock")
-                          for r in unknown_parts(conn)]
-
-          # 1.1.0 ships this rule in rules/unknown_part.py. Start from the three
-          # 1.0.0 rules so we can add it back by hand.
-          RULES[:] = [r for r in RULES if r.name != "unknown_part"]
-          RULES.append(UnknownPartRule())          # the one other line that changes
-
-          settings = load_settings("data/settings.json")
-          with closing(connect(deck.fresh_path("rule.db"))) as conn:
-              init_db(conn)
-              load_stock_records(conn, load_stock("data/stock.csv")[0])
-              save_visits(conn, load_visits("data/visits_unknown_parts.csv", settings.part_number_pattern)[0])
-              flags = run_all_rules(conn, settings)
-
-          deck.bars("Flags by rule", Counter(f.rule for f in flags).items(), highlight=["unknown_part"])
-          deck.table([{"serial": f.serial_number, "part": f.part_number, "message": f.message}
-                      for f in flags if f.rule == "unknown_part"], title="New in 1.1.0")
-        </script>
-      </div>
+    <h2>A new rule is <em>one class and one line</em></h2>
+    <p>Every rule inherits from <code class="inline">FlagRule</code> and answers one question about the history. The runner and the report already handle any rule in the list.</p>
+    <div class="pipeline">
+      <div class="station"><div class="n">1</div><div class="what">Repeat failure</div><div class="io">RepeatFailureRule<br>3 visits in 30 days</div></div>
+      <div class="station"><div class="n">2</div><div class="what">Low stock</div><div class="io">LowStockRule<br>at or under reorder level</div></div>
+      <div class="station"><div class="n">3</div><div class="what">Shortfall</div><div class="io">ShortfallRule<br>below zero on hand</div></div>
+      <div class="station"><div class="n">4</div><div class="what">Unknown part <span class="k" style="font-size: 14px; background: var(--butter); color: var(--warn-ink); padding: 2px 10px; border-radius: 999px">1.1.0</span></div><div class="io">UnknownPartRule<br>part not in stock</div></div>
     </div>
+    <p style="margin-top: 32px">Release 1.1.0 added the unknown-part rule as one new class plus one entry in <code class="inline">RULES</code>. The database tables didn't change.</p>
     <aside class="notes">
-      Count the lines of the class out loud. The bar chart shows the three 1.0.0 rules still running beside the new one. Comment out the RULES.append line and run again to show it disappear.
+      The four boxes are the four entries in RULES, in the order they run. Adding one is a new file and one line; nothing else in the program changes.
     </aside>
   </section>
 
@@ -975,60 +814,25 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
   </section>
 
   <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Upgrade and rollback">
-    <div class="run-grid">
-      <div class="prose">
-        <h2>Upgrade to 1.1.0, roll back to 1.0.0, <em>lose nothing</em></h2>
-        <p>Each step below starts a fresh "container" (new Python state) against the same database file, the way each <code class="inline">docker run</code> mounts the same volume.</p>
-        <p>Before upgrading we back the database up and check the copy. 1.1.0 adds a rule but no schema change, so 1.0.0 still reads everything 1.1.0 wrote.</p>
-        <div class="try">In the browser, 1.1.0 is 1.0.0 plus the new rule. The real images run live next.</div>
+    <h2>Upgrade to 1.1.0, roll back to 1.0.0, <em>lose nothing</em></h2>
+    <div class="two">
+      <div>
+        <p>Every step starts a new container on the same volume. Before upgrading we back the database up and check the copy.</p>
+        <p>1.1.0 adds a rule but no schema change, so 1.0.0 still reads everything 1.1.0 wrote.</p>
       </div>
-      <div class="bench">
-        <script type="text/x-python" id="s-volume">
-          import contextlib, io, sqlite3
-          import deck
-
-          VOLUME = deck.fresh_path("volume/service.db")     # stands in for tracker-data
-
-          def container(version, *args):
-              deck.forget_modules()                         # a new container: fresh Python, same volume
-              from service_tracker.cli import main
-              from service_tracker.rules import RULES
-              if version == "1.0.0":                        # 1.0.0 shipped without the unknown-part rule
-                  RULES[:] = [r for r in RULES if r.name != "unknown_part"]
-              out = io.StringIO()
-              with contextlib.redirect_stdout(out):
-                  main([*args, "--db", VOLUME])
-              with closing_db() as db:
-                  visits = db.execute("SELECT COUNT(*) FROM visits").fetchone()[0]
-              return out.getvalue(), visits
-
-          def closing_db():
-              return contextlib.closing(sqlite3.connect(VOLUME))
-
-          run = lambda f: ["run", "--visits", f"data/{f}", "--stock", "data/stock.csv",
-                           "--settings", "data/settings.json"]
-          steps = [
-              ("1.0.0 run",         "1.0.0", run("visits.csv")),
-              ("1.0.0 history",     "1.0.0", ["history", "SW-4410"]),
-              ("1.1.0 run",         "1.1.0", run("visits_unknown_parts.csv")),
-              ("Back to 1.0.0 run", "1.0.0", run("visits_unknown_parts.csv")),
-          ]
-          counts = []
-          for label, version, args in steps:
-              if version == "1.1.0":                        # back up before the upgrade
-                  from service_tracker.backup import backup
-                  print(f"{'Backup':<18} copy checked: {backup(VOLUME, 'volume/backups/pre-1.1.0.db')}")
-              text, visits = container(version, *args)
-              counts.append((label, visits))
-              print(f"{label:<18} visits in volume: {visits:>3}   unknown-part flags shown: {'Unknown part' in text}")
-
-          deck.bars("Visits stored in the volume after each step", counts, highlight=["Back to 1.0.0 run"])
-          deck.terminal(text, title="$ service-tracker run ...   (1.0.0, after the rollback)")
-        </script>
-      </div>
+      <table class="data big">
+        <thead><tr><th>step</th><th>visits in volume</th><th>unknown-part flags</th></tr></thead>
+        <tbody>
+          <tr><td>1.0.0 run</td><td>40</td><td>no</td></tr>
+          <tr><td>1.0.0 history</td><td>40</td><td>no</td></tr>
+          <tr><td>Backup</td><td colspan="2">copy checked: ok</td></tr>
+          <tr class="hit"><td>1.1.0 run</td><td>42</td><td>yes</td></tr>
+          <tr><td>Back to 1.0.0 run</td><td>42</td><td>no</td></tr>
+        </tbody>
+      </table>
     </div>
     <aside class="notes">
-      Read the printed lines: 40, 40, the backup check printing ok, then 42, 42. The unknown-part flags appear only on 1.1.0. After the rollback, 1.0.0 saves nothing new (every visit is a duplicate), shows no unknown-part section, and the count stays at 42. Then hand over to the real Docker demo.
+      Read down the table: 40, 40, backup ok, 42, 42. The unknown-part flags appear only on 1.1.0. After the rollback, 1.0.0 saves nothing new and the count stays at 42. These are the results of the rollback drill; the real images run live next.
       <div class="handoff">"Now the live demo: files in, report out, then upgrade and roll back."</div>
     </aside>
   </section>
