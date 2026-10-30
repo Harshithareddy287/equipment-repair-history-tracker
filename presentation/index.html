@@ -343,6 +343,60 @@
     .asset .nums span { font-size: 14px; font-weight: 700; color: var(--ink-2); }
     .asset .stamp { align-self: flex-start; padding: 10px 18px; border-radius: 999px; background: var(--pink); color: var(--bad-ink); font-size: 18px; font-weight: 800; }
 
+    /* Introduction */
+    .pains { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 30px; }
+    .pain { display: flex; flex-direction: column; gap: 10px; background: var(--paper); border: 1.5px solid var(--line); border-radius: 26px; padding: 26px 28px; box-shadow: 0 6px 0 var(--lift); }
+    .pain .tag { align-self: flex-start; font-size: 15px; font-weight: 800; padding: 4px 12px; border-radius: 999px; background: var(--pink); color: var(--bad-ink); }
+    .pain:nth-child(2) .tag { background: var(--butter); color: var(--warn-ink); }
+    .pain:nth-child(3) .tag { background: var(--peach); color: #8A3A18; }
+    .pain b { font-size: 26px; font-weight: 800; line-height: 1.2; letter-spacing: -0.015em; }
+    .pain .d { font-size: 19px; line-height: 1.5; color: #4B4560; }
+    .ask { margin-top: 28px; align-self: flex-start; background: var(--lav); border-radius: 22px; padding: 18px 26px; font-size: 24px; color: var(--ink); }
+
+    /* Solution */
+    .facts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-top: 34px; }
+    .fact { display: flex; flex-direction: column; gap: 6px; border-radius: 22px; padding: 20px 22px; }
+    .fact b { font-size: 22px; font-weight: 800; }
+    .fact span { font-size: 18px; line-height: 1.45; }
+    .fact.bad { background: var(--pink); color: var(--bad-ink); }
+    .fact.warn { background: var(--butter); color: var(--warn-ink); }
+    .fact.lav { background: var(--lav); color: var(--accent-ink); }
+    .fact.ok { background: var(--mint); color: var(--ok-ink); }
+
+    /* Frontend */
+    .front { display: grid; grid-template-columns: minmax(0, 1fr) 600px; gap: 40px; margin-top: 28px; flex: 1; min-height: 0; }
+    .dash { position: relative; background: var(--paper); border: 1.5px solid var(--line); border-radius: 26px; padding: 22px 26px; box-shadow: 0 6px 0 var(--lift); display: flex; flex-direction: column; gap: 16px; align-self: start; }
+    .dash .ribbon { position: absolute; top: -14px; right: 24px; background: var(--butter); color: var(--warn-ink); font-size: 14px; font-weight: 800; padding: 5px 14px; border-radius: 999px; }
+    .dash .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .dash .top b { font-size: 20px; font-weight: 800; }
+    .dash .search { flex: 0 0 280px; border: 1.5px solid var(--line); border-radius: 999px; padding: 8px 16px; font-family: var(--mono); font-size: 14px; color: var(--ink-3); }
+    .dash .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .dash .tile { border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; }
+    .dash .tile b { font-size: 32px; font-weight: 800; line-height: 1.1; }
+    .dash .tile span { font-size: 14px; font-weight: 700; }
+    .dash .list { display: flex; flex-direction: column; gap: 8px; }
+    .dash .row { display: grid; grid-template-columns: 130px 110px minmax(0, 1fr); align-items: center; gap: 12px; background: var(--ground); border-radius: 14px; padding: 10px 14px; font-size: 15px; }
+    .dash .row .k { font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; justify-self: start; }
+    .dash .row .id { font-family: var(--mono); }
+    .dash .note { font-size: 14px; color: var(--ink-2); }
+    .cli { display: flex; flex-direction: column; gap: 14px; }
+    .cli .term pre { font-size: 14px; }
+    .cli p { font-size: 19px; margin: 0; }
+
+    /* Conclusion */
+    .wins { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 30px; }
+    .win { display: flex; flex-direction: column; gap: 4px; border-radius: 22px; padding: 20px 22px; background: var(--sky); color: #234E8C; }
+    .win b { font-size: 44px; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+    .win span { font-size: 17px; font-weight: 700; line-height: 1.35; }
+    .win:nth-child(2) { background: var(--lav); color: var(--accent-ink); }
+    .win:nth-child(3) { background: var(--mint); color: var(--ok-ink); }
+    .win:nth-child(4) { background: var(--butter); color: var(--warn-ink); }
+    .gains { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 22px; }
+    .gain { background: var(--paper); border: 1.5px solid var(--line); border-radius: 22px; padding: 20px 24px; }
+    .gain b { display: block; font-size: 21px; font-weight: 800; margin-bottom: 6px; }
+    .gain span { font-size: 17px; line-height: 1.5; color: #4B4560; }
+    .fine { margin-top: 18px; font-size: 15px; color: var(--ink-3); }
+
     @media (prefers-reduced-motion: reduce) {
       .editor, #progress button { transition: none; }
     }
@@ -383,23 +437,42 @@
     </aside>
   </section>
 
-  <!-- ===================== Natalie ===================== -->
-  <section class="slide" data-owner="Natalie King" data-part="The problem">
-    <h2>Technicians log every visit. The manager needs <em>two answers.</em></h2>
-    <div class="questions">
-      <div class="q"><span class="qi"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/></svg></span><div><b>Is any equipment failing over and over?</b><span class="d">Three visits to one switch in a month means the repair isn't holding.</span></div></div>
-      <div class="q"><span class="qi"><svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5"/><path d="M12 13v8"/></svg></span><div><b>Are we running out of spare parts?</b><span class="d">A part at or under its reorder level, or used past zero, needs ordering.</span></div></div>
+  <!-- ===================== Introduction ===================== -->
+  <section class="slide" data-owner="Team" data-part="Introduction">
+    <h2>Today the repair history lives in <em>filing cabinets</em></h2>
+    <p>Our client repairs servers and network equipment. Visit sheets, stock counts and equipment records are all on paper.</p>
+    <div class="pains">
+      <div class="pain"><span class="tag">Errors</span><b>A wrong number stays wrong</b><span class="d">A mistyped quantity, an illegible date or a sheet in the wrong drawer, and the record can't be trusted or can't be found.</span></div>
+      <div class="pain"><span class="tag">Lost profit</span><b>Repairs that don't hold go unnoticed</b><span class="d">Nobody lines up three sheets for the same switch in one month, so the client keeps paying for a fix that isn't working.</span></div>
+      <div class="pain"><span class="tag">Client mix-ups</span><b>The part isn't on the shelf</b><span class="d">The count on paper said there were spares. The technician finds out at the client's site.</span></div>
     </div>
-    <div class="pipeline">
-      <div class="station"><div class="n">1</div><div class="what">Check the files</div><div class="who">Natalie</div><div class="io">visits.csv, stock.csv<br>settings.json</div></div>
-      <div class="station"><div class="n">2</div><div class="what">Save the history</div><div class="who">Julian</div><div class="io">SQLite, one transaction<br>per visit</div></div>
-      <div class="station"><div class="n">3</div><div class="what">Find the problems</div><div class="who">Shreyaa</div><div class="io">rules over all history<br>manager's report</div></div>
-      <div class="station"><div class="n">4</div><div class="what">Run it anywhere</div><div class="who">Harshitha</div><div class="io">Docker image + volume<br>1.0.0, then 1.1.0</div></div>
-    </div>
+    <div class="ask"><b>The owner needs two answers, fast:</b> what keeps failing, and what is running out?</div>
     <aside class="notes">
-      The customer is a company that repairs servers and network gear. Every visit, a technician records the machine and the parts used. Our tool keeps that history and flags two kinds of problems. It only flags them: it doesn't order parts or schedule repairs. Walk the four stations left to right; each one is one of us.
+      Keep this concrete: one switch, three visits, one month, and nobody noticed. If asked how paper gets in: technicians' visit sheets are typed into a spreadsheet and exported as CSV, and that typing is where mistakes come from. That's why intake checking matters.
     </aside>
   </section>
+
+  <!-- ===================== Solution ===================== -->
+  <section class="slide" data-owner="Team" data-part="Our solution">
+    <h2>One digital repair history <em>that checks itself</em></h2>
+    <div class="pipeline">
+      <div class="station"><div class="n">1</div><div class="what">Intake</div><div class="who">Check every row</div><div class="io">visits.csv, stock.csv<br>bad rows rejected</div></div>
+      <div class="station"><div class="n">2</div><div class="what">Storage</div><div class="who">Keep the history</div><div class="io">SQLite, one transaction<br>per visit</div></div>
+      <div class="station"><div class="n">3</div><div class="what">Rules</div><div class="who">Flag the problems</div><div class="io">same input,<br>same flags</div></div>
+      <div class="station"><div class="n">4</div><div class="what">Report</div><div class="who">Tell the owner</div><div class="io">report today,<br>dashboard next</div></div>
+    </div>
+    <div class="facts">
+      <div class="fact bad"><b>Shortfall</b><span>A visit used more parts than were on hand.</span></div>
+      <div class="fact warn"><b>Low stock</b><span>A part is at or under its reorder level.</span></div>
+      <div class="fact lav"><b>Repeat failure</b><span>The same machine needed 3 visits in 30 days.</span></div>
+      <div class="fact ok"><b>Runs anywhere</b><span>One Docker image, on whatever system the client has.</span></div>
+    </div>
+    <aside class="notes">
+      Walk the four stations left to right; each is one section of the talk. "Deterministic" means the same files always give the same flags: no guessing. A mistyped number is caught at intake, before it can corrupt a stock count. The tool flags problems in its report; people decide what to order or replace.
+    </aside>
+  </section>
+
+  <!-- ===================== Intake ===================== -->
 
   <section class="slide" data-owner="Natalie King" data-part="Synthetic data">
     <div class="run-grid">
@@ -514,7 +587,7 @@
     </aside>
   </section>
 
-  <!-- ===================== Julian ===================== -->
+  <!-- ===================== Storage ===================== -->
   <section class="slide" data-owner="Julian Marchington" data-part="Storage">
     <h2>Four tables, and one <em>deliberate missing link</em></h2>
     <div class="schema-grid">
@@ -551,6 +624,7 @@
         <li><span>A visit that used two parts is one row in <code class="inline">visits</code> and two in <code class="inline">parts_used</code>.</span></li>
         <li><span>Stock can go below zero. A negative count is how a shortfall stays visible.</span></li>
         <li class="warn"><span><code class="inline">parts_used</code> doesn't point at <code class="inline">stock</code>, so a part missing from the stock list can still be saved and flagged later. That's what makes the 1.1.0 rollback safe.</span></li>
+        <li><span>Ten years at 20 visits a day is 73,000 visits in a 9.8 MB file.</span></li>
       </ul>
     </div>
     <aside class="notes">
@@ -562,7 +636,7 @@
     <div class="run-grid">
       <div class="prose">
         <h2>One batch in, and the stock counts follow</h2>
-        <p><code class="inline">save_visits</code> groups rows by visit and saves each visit in one transaction: the equipment, the visit, its parts and the stock change.</p>
+        <p><code class="inline">save_visits</code> groups rows by visit and saves each visit in one transaction: the equipment, the visit, its parts and the stock change. One visit in the database is one paper visit sheet, so any record can be checked by hand.</p>
         <p>P-1180 had 1 on hand. A visit used 3. The database says -2, and keeps saying it.</p>
       </div>
       <div class="bench">
@@ -607,7 +681,7 @@
       <div class="prose">
         <h2>A save that fails halfway <em>leaves nothing behind</em></h2>
         <p>This visit's first part is fine. Its second breaks a rule in the schema. Because the whole visit is one transaction, the first part's write and its stock change are rolled back too.</p>
-        <p>Then we save a good visit twice: the second run is a duplicate and changes nothing.</p>
+        <p>Then we save a good visit twice: the second run is a duplicate and changes nothing. Loading yesterday's file again never counts a visit or a part twice.</p>
       </div>
       <div class="bench">
         <script type="text/x-python" id="s-rollback">
@@ -654,11 +728,47 @@
     </div>
     <aside class="notes">
       The pairs of bars are identical: that's the point. Without the transaction, P-1001 would have dropped to 8 with no visit to explain it.
-      <div class="handoff">"With the history saved safely, Shreyaa shows how the rules read it to find problems."</div>
+      <div class="handoff">"With the history saved safely, here's how the owner will see it."</div>
     </aside>
   </section>
 
-  <!-- ===================== Shreyaa ===================== -->
+  <!-- ===================== Frontend ===================== -->
+  <section class="slide" data-owner="Team" data-part="Frontend">
+    <h2>A dashboard for the owner. <em>A command line for analysts.</em></h2>
+    <div class="front">
+      <div class="dash" role="img" aria-label="Mockup of the planned owner dashboard, showing flag counts and the flags from the seed-42 data">
+        <span class="ribbon">Mockup · planned, not built yet</span>
+        <div class="top"><b>Service Visit Tracker</b><span class="search">Search a serial number…</span></div>
+        <div class="tiles">
+          <div class="tile c-pink"><b>1</b><span>Repeat failure</span></div>
+          <div class="tile c-butter"><b>3</b><span>Low stock</span></div>
+          <div class="tile c-pink"><b>1</b><span>Shortfall</span></div>
+          <div class="tile c-sky"><b>4</b><span>Rows rejected</span></div>
+        </div>
+        <div class="list">
+          <div class="row"><span class="k c-pink">Repeat failure</span><span class="id">SW-4410</span><span>3 visits in 22 days</span></div>
+          <div class="row"><span class="k c-pink">Shortfall</span><span class="id">P-1180</span><span>-2 on hand</span></div>
+          <div class="row"><span class="k c-butter">Low stock</span><span class="id">P-2031</span><span>2 on hand, reorder at 5</span></div>
+          <div class="row"><span class="k c-butter">Low stock</span><span class="id">P-3307</span><span>4 on hand, reorder at 4</span></div>
+        </div>
+        <span class="note">Counts and flags are the real results from today's sample files.</span>
+      </div>
+      <div class="cli">
+        <div class="term"><div class="bar">$ service-tracker history SW-4410</div><pre>History for SW-4410
+V-0139  2026-10-02  A. Okafor  PWR  failed  P-1001 x1
+V-0141  2026-10-11  B. Lindqvist  PWR  replaced_part  P-1001 x1
+V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
+        <p>Built today: <code class="inline">service-tracker run</code> loads the files and prints the report, and <code class="inline">history</code> shows any machine's visits.</p>
+        <p>The data is one SQLite file, so an analyst can query visits and stock directly.</p>
+      </div>
+    </div>
+    <aside class="notes">
+      Say clearly that the dashboard is a mockup: the numbers on it are real, the screen isn't built yet. The command line is what runs today, and the terminal shows its real output on the sample data.
+      <div class="handoff">"Behind every flag on that dashboard is a rule. Shreyaa shows how they work."</div>
+    </aside>
+  </section>
+
+  <!-- ===================== Rules ===================== -->
   <section class="slide" data-owner="Shreyaa Lakshmivaragan" data-part="Rules">
     <div class="run-grid">
       <div class="prose">
@@ -736,9 +846,12 @@
               def evaluate(self, conn, settings):
                   return [Flag(self.name, r["serial_number"], r["part_number"],
                                [date.fromisoformat(r["visit_date"])], r["quantity"],
-                               f"{r['part_number']} used on {r['visit_id']} is not in stock")
+                               f"{r['part_number']} is not in stock")
                           for r in unknown_parts(conn)]
 
+          # 1.1.0 ships this rule in rules/unknown_part.py. Start from the three
+          # 1.0.0 rules so we can add it back by hand.
+          RULES[:] = [r for r in RULES if r.name != "unknown_part"]
           RULES.append(UnknownPartRule())          # the one other line that changes
 
           settings = load_settings("data/settings.json")
@@ -785,11 +898,39 @@
     </div>
     <aside class="notes">
       Scroll the terminal output slowly: rejections first, then the summary, then each group. P-1180 appears under low stock and under shortfalls; be ready to explain why if asked.
-      <div class="handoff">"It works on my machine; Harshitha shows how it runs anywhere and survives an upgrade."</div>
+      <div class="handoff">"It works on my machine; Harshitha shows how we test it, run it anywhere, and survive an upgrade."</div>
     </aside>
   </section>
 
-  <!-- ===================== Harshitha ===================== -->
+  <!-- ===================== Reliability ===================== -->
+  <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Tests">
+    <h2>What the tests cover, and what they don't</h2>
+    <div class="two">
+      <div class="cover yes">
+        <h3><span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Covered on every pull request</h3>
+        <ul>
+          <li>Each loader rejection reason and each settings error</li>
+          <li>Rollback of a half-saved visit, and reruns that save nothing twice</li>
+          <li>Each rule alone, a serial breaking two rules, a day with no flags</li>
+          <li>An integration test: the real CLI on the seed-42 files, checking the report and row counts</li>
+          <li>The Docker image builds</li>
+        </ul>
+      </div>
+      <div class="cover no">
+        <h3><span class="ic"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Not covered automatically</h3>
+        <ul>
+          <li>The volume surviving a removed container</li>
+          <li>Upgrade and rollback between the real images</li>
+          <li>Very large input files</li>
+        </ul>
+        <p>Those are checked by the rollback drill, which we rehearse from a clean volume.</p>
+      </div>
+    </div>
+    <aside class="notes">
+      Being honest about gaps is the point of this slide. If asked "how would you test the rollback in CI?", the answer is a CI job that runs both image tags on one named volume.
+    </aside>
+  </section>
+
   <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Container">
     <h2>The container can go. <em>The history stays.</em></h2>
     <div class="two">
@@ -838,13 +979,12 @@
       <div class="prose">
         <h2>Upgrade to 1.1.0, roll back to 1.0.0, <em>lose nothing</em></h2>
         <p>Each step below starts a fresh "container" (new Python state) against the same database file, the way each <code class="inline">docker run</code> mounts the same volume.</p>
-        <p>1.1.0 adds a rule but no schema change, so 1.0.0 still reads everything 1.1.0 wrote.</p>
+        <p>Before upgrading we back the database up and check the copy. 1.1.0 adds a rule but no schema change, so 1.0.0 still reads everything 1.1.0 wrote.</p>
         <div class="try">In the browser, 1.1.0 is 1.0.0 plus the new rule. The real images run live next.</div>
       </div>
       <div class="bench">
         <script type="text/x-python" id="s-volume">
           import contextlib, io, sqlite3
-          from datetime import date
           import deck
 
           VOLUME = deck.fresh_path("volume/service.db")     # stands in for tracker-data
@@ -852,17 +992,9 @@
           def container(version, *args):
               deck.forget_modules()                         # a new container: fresh Python, same volume
               from service_tracker.cli import main
-              from service_tracker.db import unknown_parts
               from service_tracker.rules import RULES
-              from service_tracker.rules.base import Flag, FlagRule
-              if version == "1.1.0":
-                  class UnknownPartRule(FlagRule):
-                      name = "unknown_part"
-                      def evaluate(self, conn, settings):
-                          return [Flag(self.name, r["serial_number"], r["part_number"],
-                                       [date.fromisoformat(r["visit_date"])], r["quantity"],
-                                       f"{r['part_number']} is not in stock") for r in unknown_parts(conn)]
-                  RULES.append(UnknownPartRule())
+              if version == "1.0.0":                        # 1.0.0 shipped without the unknown-part rule
+                  RULES[:] = [r for r in RULES if r.name != "unknown_part"]
               out = io.StringIO()
               with contextlib.redirect_stdout(out):
                   main([*args, "--db", VOLUME])
@@ -883,6 +1015,9 @@
           ]
           counts = []
           for label, version, args in steps:
+              if version == "1.1.0":                        # back up before the upgrade
+                  from service_tracker.backup import backup
+                  print(f"{'Backup':<18} copy checked: {backup(VOLUME, 'volume/backups/pre-1.1.0.db')}")
               text, visits = container(version, *args)
               counts.append((label, visits))
               print(f"{label:<18} visits in volume: {visits:>3}   unknown-part flags shown: {'Unknown part' in text}")
@@ -893,35 +1028,7 @@
       </div>
     </div>
     <aside class="notes">
-      Read the four printed lines: 40, 40, 42, 42. The unknown-part flags appear only on 1.1.0. After the rollback, 1.0.0 saves nothing new (every visit is a duplicate), shows no unknown-part section, and the count stays at 42. Then hand over to the real Docker demo.
-    </aside>
-  </section>
-
-  <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Tests">
-    <h2>What the tests cover, and what they don't</h2>
-    <div class="two">
-      <div class="cover yes">
-        <h3><span class="ic"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Covered on every pull request</h3>
-        <ul>
-          <li>Each loader rejection reason and each settings error</li>
-          <li>Rollback of a half-saved visit, and reruns that save nothing twice</li>
-          <li>Each rule alone, a serial breaking two rules, a day with no flags</li>
-          <li>An integration test: the real CLI on the seed-42 files, checking the report and row counts</li>
-          <li>The Docker image builds</li>
-        </ul>
-      </div>
-      <div class="cover no">
-        <h3><span class="ic"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>Not covered automatically</h3>
-        <ul>
-          <li>The volume surviving a removed container</li>
-          <li>Upgrade and rollback between the real images</li>
-          <li>Very large input files</li>
-        </ul>
-        <p>Those are checked by the rollback drill, which we rehearse from a clean volume.</p>
-      </div>
-    </div>
-    <aside class="notes">
-      Being honest about gaps is the point of this slide. If asked "how would you test the rollback in CI?", the answer is a CI job that runs both image tags on one named volume.
+      Read the printed lines: 40, 40, the backup check printing ok, then 42, 42. The unknown-part flags appear only on 1.1.0. After the rollback, 1.0.0 saves nothing new (every visit is a duplicate), shows no unknown-part section, and the count stays at 42. Then hand over to the real Docker demo.
       <div class="handoff">"Now the live demo: files in, report out, then upgrade and roll back."</div>
     </aside>
   </section>
@@ -941,6 +1048,27 @@
     </div>
     <aside class="notes">
       Terminal font at 20pt or larger. If the live demo fails, switch to the pasted output in the README and the upgrade slide before this one.
+      <div class="handoff">"So what does this mean for the business?"</div>
+    </aside>
+  </section>
+
+  <!-- ===================== Conclusion ===================== -->
+  <section class="slide" data-owner="Team" data-part="Conclusion">
+    <h2>What the owner <em>gets</em></h2>
+    <div class="wins">
+      <div class="win"><b>0.26 s</b><span>to check and save a day's visits, on top of 10 years of history</span></div>
+      <div class="win"><b>0.31 s</b><span>to pull every visit for one machine, instead of searching cabinets</span></div>
+      <div class="win"><b>9.8 MB</b><span>for 10 years of visits: one file, easy to back up</span></div>
+      <div class="win"><b>$0</b><span>in licences: Python and SQLite, no paid software</span></div>
+    </div>
+    <div class="gains">
+      <div class="gain"><b>Less manual work</b><span>No filing, no lining up sheets by hand. The report lists what keeps failing and what to reorder.</span></div>
+      <div class="gain"><b>Fewer wasted repairs</b><span>A machine that needs 3 visits in 30 days is flagged that month, not discovered at year end.</span></div>
+      <div class="gain"><b>Clients served first time</b><span>Low stock is flagged at the reorder level, before the shelf is empty, so technicians arrive with the part.</span></div>
+    </div>
+    <p class="fine">Timings measured with the real <code class="inline">service-tracker</code> CLI on a laptop, with 10 years of synthetic visits at 20 a day (73,000 visits).</p>
+    <aside class="notes">
+      Every number here was measured, not estimated. If asked about cost savings in dollars: we don't have the client's figures, so we talk about the work removed (filing, recounting, repeat call-outs) rather than invent a number.
     </aside>
   </section>
 
@@ -969,7 +1097,7 @@
         <span class="stamp">-2 on hand</span>
       </div>
     </div>
-    <aside class="notes">Each of us has two prepared questions in presentation/qa.md.</aside>
+    <aside class="notes">Each of us takes questions on our own section: intake, storage, rules, or Docker and tests.</aside>
   </section>
 
 </div></div>
