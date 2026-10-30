@@ -1093,7 +1093,8 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
     const output = document.createElement("div");
     output.className = "output";
     output.setAttribute("aria-live", "polite");
-    output.innerHTML = `<div class="empty">Press Run to execute this code.</div>`;
+    const EMPTY = `<div class="empty">Press Run to execute this code.</div>`;
+    output.innerHTML = EMPTY;
     bench.append(code, output);
 
     const ta = code.querySelector("textarea");
@@ -1118,20 +1119,18 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
       }
     });
     const runBtn = code.querySelector(".btn.run");
-    // Put the original code back, and if the snippet has been run, run it
-    // again so the output matches (offline, that shows the recorded run).
+    // Put the slide back as it was before any run: original code, empty output.
     code.querySelector(".reset").onclick = () => {
       ta.value = original;
       render();
       hint();
-      if (bench.classList.contains("ran")) run();
+      output.innerHTML = EMPTY;
     };
     async function run() {
       runBtn.disabled = true;
       runBtn.textContent = "Running";
       try {
         await runSnippet(id, ta.value, original, output);
-        bench.classList.add("ran");
       } finally {
         runBtn.disabled = false;
         runBtn.textContent = "Run";
@@ -1256,7 +1255,7 @@ import deck
       return show(output, rec.result, `Recorded run from ${BUNDLE.built} (Python didn't load here)`, true);
     }
     output.innerHTML = `<pre class="stdout error">${esc(bootError ? bootError.message : "Python isn't available.")}\n\n` +
-      `Edited code can only run when Python loads. Press Reset to show the recorded run.</pre>`;
+      `Edited code can only run when Python loads. Press Reset, then Run, to show the recorded run.</pre>`;
   }
 
   function show(output, result, stampText, recorded) {
