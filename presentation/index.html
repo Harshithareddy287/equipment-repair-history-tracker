@@ -833,25 +833,6 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
     </div>
     <aside class="notes">
       Read down the table: 40, 40, backup ok, 42, 42. The unknown-part flags appear only on 1.1.0. After the rollback, 1.0.0 saves nothing new and the count stays at 42. These are the results of the rollback drill; the real images run live next.
-      <div class="handoff">"Now the live demo: files in, report out, then upgrade and roll back."</div>
-    </aside>
-  </section>
-
-  <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Live demo">
-    <h2>Live demo</h2>
-    <div class="cmds">
-      <div class="cmd"><span class="n">1</span><code>docker volume create tracker-demo</code><button class="copy">Copy</button></div>
-      <div class="cmd"><span class="n">2</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.0.0</code><button class="copy">Copy</button>
-        <div class="say">Files in, report out. 40 saved, 4 rejected.</div></div>
-      <div class="cmd"><span class="n">3</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.0.0 history SW-4410</code><button class="copy">Copy</button>
-        <div class="say">A new container, and the history is still there.</div></div>
-      <div class="cmd"><span class="n">4</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.1.0 run --visits sample_data/visits_unknown_parts.csv --stock sample_data/stock.csv --settings sample_data/settings.json</code><button class="copy">Copy</button>
-        <div class="say">Upgrade: the unknown-part flags appear.</div></div>
-      <div class="cmd"><span class="n">5</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.0.0 history SW-4410</code><button class="copy">Copy</button>
-        <div class="say">Roll back: 1.0.0 still reads it all.</div></div>
-    </div>
-    <aside class="notes">
-      Terminal font at 20pt or larger. If the live demo fails, switch to the pasted output in the README and the upgrade slide before this one.
       <div class="handoff">"So what does this mean for the business?"</div>
     </aside>
   </section>
@@ -873,6 +854,25 @@ V-0144  2026-10-24  C. Moreau  PWR  escalated  P-1002 x1</pre></div>
     <p class="fine">Timings measured with the real <code class="inline">service-tracker</code> CLI on a laptop, with 10 years of synthetic visits at 20 a day (73,000 visits).</p>
     <aside class="notes">
       Every number here was measured, not estimated. If asked about cost savings in dollars: we don't have the client's figures, so we talk about the work removed (filing, recounting, repeat call-outs) rather than invent a number.
+      <div class="handoff">"Now the live demo: files in, report out, then upgrade and roll back."</div>
+    </aside>
+  </section>
+
+  <section class="slide" data-owner="Harshitha Reddy Gundavarapu" data-part="Live demo">
+    <h2>Live demo</h2>
+    <div class="cmds">
+      <div class="cmd"><span class="n">1</span><code>docker volume create tracker-demo</code><button class="copy">Copy</button></div>
+      <div class="cmd"><span class="n">2</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.0.0</code><button class="copy">Copy</button>
+        <div class="say">Files in, report out. 40 saved, 4 rejected.</div></div>
+      <div class="cmd"><span class="n">3</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.0.0 history SW-4410</code><button class="copy">Copy</button>
+        <div class="say">A new container, and the history is still there.</div></div>
+      <div class="cmd"><span class="n">4</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.1.0 run --visits sample_data/visits_unknown_parts.csv --stock sample_data/stock.csv --settings sample_data/settings.json</code><button class="copy">Copy</button>
+        <div class="say">Upgrade: the unknown-part flags appear.</div></div>
+      <div class="cmd"><span class="n">5</span><code>docker run --rm -v tracker-demo:/data service-tracker:1.0.0 history SW-4410</code><button class="copy">Copy</button>
+        <div class="say">Roll back: 1.0.0 still reads it all.</div></div>
+    </div>
+    <aside class="notes">
+      Terminal font at 20pt or larger. If the live demo fails, switch to the pasted output in the README and go back to the Upgrade and rollback slide.
     </aside>
   </section>
 
