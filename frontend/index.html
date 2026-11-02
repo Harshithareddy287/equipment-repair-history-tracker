@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Service Visit Tracker</title>
+  <script>
+    try {
+      const saved = localStorage.getItem("tracker-theme");
+      const dark = saved ? saved === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+      if (dark) document.documentElement.setAttribute("data-theme", "dark");
+    } catch (e) { /* ignore */ }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="kicker">service_tracker 1.1.0</span>
+        <h1>Service Visit <em>Tracker</em></h1>
+      </div>
+      <div class="toolbar" role="group" aria-label="View and theme">
+        <label class="sr-only" for="mode-select">View</label>
+        <select id="mode-select">
+          <option value="owner">Owner</option>
+          <option value="records">Records</option>
+          <option value="technical">Technical</option>
+        </select>
+        <button type="button" id="theme-toggle" aria-pressed="false" aria-label="Switch to dark mode">
+          <svg class="icon moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M15.4 3.2a8.8 8.8 0 1 0 5.4 15.6A9 9 0 0 1 15.4 3.2z"/></svg>
+          <svg class="icon sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.1 5.1l1.6 1.6M17.3 17.3l1.6 1.6M5.1 18.9l1.6-1.6M17.3 6.7l1.6-1.6"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section id="owner-view" class="view is-active">
+        <div class="dash">
+          <div class="dash-top">
+            <div>
+              <b>What needs attention</b>
+              <p class="lead">Flags from the saved history. The tool reports; people decide what to order or replace.</p>
+              <p class="rule-note" id="rule-note"></p>
+            </div>
+            <form id="search-form" class="search-form">
+              <label class="sr-only" for="lookup-search">Search a serial or part number</label>
+              <input id="lookup-search" class="search" type="search" name="q" placeholder="Serial, part number, or name…" autocomplete="off" spellcheck="false">
+              <button type="submit" class="btn">Look up</button>
+            </form>
+          </div>
+
+          <div id="status" class="status" hidden></div>
+
+          <div class="tiles" id="tiles" aria-live="polite">
+            <div class="tile c-pink" data-rule="repeat_failure"><b>—</b><span>Repeat failure</span></div>
+            <div class="tile c-butter" data-rule="low_stock"><b>—</b><span>Low stock</span></div>
+            <div class="tile c-peach" data-rule="shortfall"><b>—</b><span>Shortfall</span></div>
+            <div class="tile c-lav" data-rule="unknown_part"><b>—</b><span>Unknown part</span></div>
+          </div>
+
+          <div class="owner-grid">
+            <div class="stack">
+              <div>
+                <h2>Flags</h2>
+                <div id="flag-list" class="list" aria-live="polite"></div>
+              </div>
+              <div>
+                <h2>Stock to watch</h2>
+                <div id="stock-list" class="list" aria-live="polite"></div>
+              </div>
+            </div>
+            <aside id="detail-panel" class="history-panel">
+              <h2 id="detail-title">Lookup</h2>
+              <p class="note" id="detail-empty">Search a serial, part number, or name such as Fan.</p>
+              <div id="detail-card" class="asset" hidden></div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section id="records-view" class="view" hidden>
+        <div class="dash">
+          <div class="dash-top">
+            <div>
+              <b>All saved records</b>
+              <p class="lead">Every visit and stock row in the database. Filter the tables, or open a serial or part in Owner view.</p>
+              <p class="rule-note" id="records-count"></p>
+            </div>
+            <form id="records-filter-form" class="records-controls">
+              <label class="sr-only" for="records-filter">Filter records</label>
+              <input id="records-filter" class="search" type="search" placeholder="Filter these tables…" autocomplete="off" spellcheck="false">
+              <span class="split" aria-hidden="true"></span>
+              <label class="sr-only" for="visits-sort">Sort visits</label>
+              <select id="visits-sort">
+                <option value="date-desc">Visits · newest</option>
+                <option value="date-asc">Visits · oldest</option>
+                <option value="serial">Visits · serial</option>
+                <option value="technician">Visits · technician</option>
+                <option value="outcome">Visits · outcome</option>
+                <option value="part">Visits · part</option>
+              </select>
+              <span class="split" aria-hidden="true"></span>
+              <label class="sr-only" for="stock-sort">Sort stock</label>
+              <select id="stock-sort">
+                <option value="status">Stock · status</option>
+                <option value="part">Stock · part</option>
+                <option value="name">Stock · name</option>
+                <option value="on-hand-asc">Stock · low first</option>
+                <option value="on-hand-desc">Stock · high first</option>
+              </select>
+            </form>
+          </div>
+          <div class="records-grid">
+            <div>
+              <h2>Visits</h2>
+              <div class="table-wrap">
+                <table class="data" id="visits-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Visit</th>
+                      <th>Serial</th>
+                      <th>Type</th>
+                      <th>Technician</th>
+                      <th>Problem</th>
+                      <th>Outcome</th>
+                      <th>Part</th>
+                      <th>Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h2>Stock</h2>
+              <div class="table-wrap">
+                <table class="data" id="stock-table">
+                  <thead>
+                    <tr>
+                      <th>Part</th>
+                      <th>Description</th>
+                      <th>On hand</th>
+                      <th>Reorder at</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="technical-view" class="view" hidden>
+        <div class="cli">
+          <p class="cli-lead">Guided commands against the same database. Free-form shell comes later; loading files still happens on the real <code>service-tracker</code> CLI.</p>
+          <div class="chips" id="command-chips">
+            <button type="button" class="chip" data-command="help">help</button>
+            <button type="button" class="chip" data-command="version">version</button>
+            <button type="button" class="chip" data-command="history SW-4410">history SW-4410</button>
+            <button type="button" class="chip" data-command="report">report</button>
+          </div>
+          <div class="term" id="terminal">
+            <div class="bar">$ service-tracker · guided</div>
+            <div class="scroll" id="term-out" aria-live="polite"></div>
+            <form id="cli-form" class="prompt">
+              <label class="sr-only" for="cli-input">Command</label>
+              <span aria-hidden="true">$</span>
+              <input id="cli-input" type="text" autocomplete="off" spellcheck="false" placeholder="help, version, history SERIAL, report">
+              <button type="submit" class="btn">Run</button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>Service Visit Tracker</span>
+      <span class="mono" id="db-label">Connecting…</span>
+    </footer>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
