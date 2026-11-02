@@ -90,30 +90,28 @@
               <p class="lead">Every visit and stock row in the database. Filter the tables, or open a serial or part in Owner view.</p>
               <p class="rule-note" id="records-count"></p>
             </div>
-            <form id="records-filter-form" class="search-form records-controls">
+            <form id="records-filter-form" class="records-controls">
               <label class="sr-only" for="records-filter">Filter records</label>
               <input id="records-filter" class="search" type="search" placeholder="Filter these tables…" autocomplete="off" spellcheck="false">
-              <label class="sort-field">
-                <span>Visits</span>
-                <select id="visits-sort">
-                  <option value="date-desc">Date (newest)</option>
-                  <option value="date-asc">Date (oldest)</option>
-                  <option value="serial">Serial</option>
-                  <option value="technician">Technician</option>
-                  <option value="outcome">Outcome</option>
-                  <option value="part">Part</option>
-                </select>
-              </label>
-              <label class="sort-field">
-                <span>Stock</span>
-                <select id="stock-sort">
-                  <option value="status">Status</option>
-                  <option value="part">Part number</option>
-                  <option value="name">Name</option>
-                  <option value="on-hand-asc">On hand (low first)</option>
-                  <option value="on-hand-desc">On hand (high first)</option>
-                </select>
-              </label>
+              <span class="split" aria-hidden="true"></span>
+              <label class="sr-only" for="visits-sort">Sort visits</label>
+              <select id="visits-sort">
+                <option value="date-desc">Visits · newest</option>
+                <option value="date-asc">Visits · oldest</option>
+                <option value="serial">Visits · serial</option>
+                <option value="technician">Visits · technician</option>
+                <option value="outcome">Visits · outcome</option>
+                <option value="part">Visits · part</option>
+              </select>
+              <span class="split" aria-hidden="true"></span>
+              <label class="sr-only" for="stock-sort">Sort stock</label>
+              <select id="stock-sort">
+                <option value="status">Stock · status</option>
+                <option value="part">Stock · part</option>
+                <option value="name">Stock · name</option>
+                <option value="on-hand-asc">Stock · low first</option>
+                <option value="on-hand-desc">Stock · high first</option>
+              </select>
             </form>
           </div>
           <div class="records-grid">

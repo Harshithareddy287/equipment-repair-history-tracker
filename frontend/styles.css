@@ -216,29 +216,42 @@ html[data-theme="dark"] .toolbar .moon { display: none; }
   background: var(--ground);
 }
 .search::placeholder { color: var(--ink-3); }
-.records-controls { flex-wrap: wrap; justify-content: flex-end; }
-.sort-field {
+.records-controls {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--ink-2);
-}
-.sort-field select {
-  min-width: 168px;
-  height: 40px;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 4px;
+  background: var(--ground);
   border: 1.5px solid var(--line);
   border-radius: 999px;
-  padding: 0 28px 0 14px;
-  background: var(--ground);
+}
+.records-controls .search {
+  width: 210px;
+  height: 36px;
+  border: 0;
+  background: transparent;
+  padding: 0 14px;
+}
+.records-controls select {
+  height: 36px;
+  min-width: 168px;
+  border: 0;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236A6478' d='M1.2 1.4L6 6.2l4.8-4.8'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding: 0 28px 0 12px;
   font-weight: 800;
   color: var(--ink);
   appearance: none;
   cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236A6478' d='M1.2 1.4L6 6.2l4.8-4.8'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
+}
+.records-controls .split {
+  width: 1px;
+  height: 20px;
+  background: var(--line);
+  flex: none;
 }
 
 .btn {
